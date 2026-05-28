@@ -9,9 +9,26 @@ st.set_page_config(page_title="Greta Studio App", page_icon="💅", layout="wide
 
 st.markdown("""
 <style>
-.block-container { padding-top: 1.3rem; }
-.app-title { font-size: 34px; font-weight: 850; color: #7a1f4d; }
+.block-container {
+    padding-top: 3.2rem !important;
+    padding-bottom: 3rem !important;
+    overflow: visible !important;
+}
+.app-title {
+    font-size: 34px;
+    font-weight: 850;
+    color: #7a1f4d;
+    line-height: 1.25;
+    margin-top: 8px;
+    margin-bottom: 6px;
+    overflow: visible;
+}
 .small-muted { color: #777; font-size: 14px; }
+.top-app-header {
+    padding-top: 10px;
+    padding-bottom: 12px;
+    overflow: visible;
+}
 .fresha-hero {
     background: linear-gradient(135deg, #ffffff 0%, #fff0f7 100%);
     border: 1px solid #f4c9dd;
@@ -122,9 +139,113 @@ section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     font-weight: 900;
     margin-bottom: 2px;
 }
-.sidebar-brand-subtitle {
-    font-size: 12px;
-    color: #e8dce2;
+ .sidebar-brand-subtitle {
+     font-size: 12px;
+     color: #e8dce2;
+ }
+
+@media screen and (max-width: 768px) {
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .top-app-header {
+        padding-top: 4px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .app-title {
+        font-size: 26px !important;
+        line-height: 1.2 !important;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .small-muted {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fresha-title {
+        font-size: 24px !important;
+        line-height: 1.18 !important;
+    }
+
+    .fresha-subtitle {
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fresha-hero {
+        padding: 16px !important;
+        border-radius: 18px !important;
+        margin-bottom: 14px !important;
+    }
+
+    .fresha-stat-card {
+        padding: 13px !important;
+        border-radius: 16px !important;
+    }
+
+    .fresha-stat-value {
+        font-size: 21px !important;
+    }
+
+    .appointment-card {
+        padding: 11px !important;
+        border-radius: 16px !important;
+    }
+
+    .appointment-time {
+        font-size: 16px !important;
+    }
+
+    .appointment-client {
+        font-size: 14px !important;
+    }
+
+    .appointment-meta {
+        font-size: 12px !important;
+    }
+
+    .day-box {
+        min-height: auto !important;
+        padding: 10px !important;
+        border-radius: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .quick-action-box {
+        padding: 12px !important;
+        border-radius: 14px !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label {
+        padding: 8px 10px !important;
+        border-radius: 14px !important;
+        margin-bottom: 6px !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label p {
+        font-size: 13px !important;
+    }
+
+    .sidebar-brand-card {
+        padding: 13px !important;
+        border-radius: 18px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .sidebar-brand-title {
+        font-size: 16px !important;
+    }
+
+    .sidebar-brand-subtitle {
+        font-size: 11px !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -583,11 +704,12 @@ def import_excel(file):
 
 
 st.markdown(
-    '<div class="app-title">💅 Greta Studio App</div>',
-    unsafe_allow_html=True
-)
-st.markdown(
-    '<div class="small-muted">Agenda, clientes, WhatsApp, ventas, catálogo, online booking, reportes, nómina y finanzas</div>',
+    """
+    <div class="top-app-header">
+        <div class="app-title">💅 Greta Studio App</div>
+        <div class="small-muted">Agenda, clientes, WhatsApp, ventas, catálogo, online booking, reportes, nómina y finanzas</div>
+    </div>
+    """,
     unsafe_allow_html=True
 )
 st.divider()
@@ -1851,5 +1973,4 @@ elif menu == "Excel / Backup":
     if uploaded is not None:
         if st.button("Importar archivo"):
             import_excel(uploaded)
-            st.success("Datos importados correctamente.")
             st.success("Datos importados correctamente.")
