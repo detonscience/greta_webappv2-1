@@ -5,111 +5,199 @@ import calendar
 from io import BytesIO
 from urllib.parse import quote
 
-st.set_page_config(page_title="Greta Studio App", page_icon="💅", layout="wide")
+st.set_page_config(page_title="VALENTINA STUDIO", page_icon="✨", layout="wide")
 
 st.markdown("""
 <style>
+:root {
+    --bg-main: #07070d;
+    --panel-dark: #10111c;
+    --panel-mid: #171827;
+    --text-main: #f8f4ff;
+    --text-muted: #b7aabd;
+    --neon-pink: #ff4fb8;
+    --neon-purple: #9b5cff;
+    --neon-cyan: #36e9ff;
+    --glass-border: rgba(255,255,255,0.14);
+}
+html, body, [data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(circle at 15% 0%, rgba(255,79,184,0.20), transparent 30%),
+        radial-gradient(circle at 85% 10%, rgba(54,233,255,0.16), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(155,92,255,0.16), transparent 35%),
+        #07070d !important;
+    color: var(--text-main) !important;
+}
+[data-testid="stHeader"] {
+    background: rgba(7,7,13,0.35) !important;
+    backdrop-filter: blur(18px);
+}
+[data-testid="stToolbar"] {
+    right: 1rem;
+}
 .block-container {
     padding-top: 3.2rem !important;
     padding-bottom: 3rem !important;
     overflow: visible !important;
+    color: var(--text-main) !important;
 }
 .app-title {
-    font-size: 34px;
-    font-weight: 850;
-    color: #7a1f4d;
-    line-height: 1.25;
+    font-size: 42px;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #ffffff;
+    line-height: 1.15;
     margin-top: 8px;
     margin-bottom: 6px;
     overflow: visible;
+    text-shadow: 0 0 18px rgba(255,79,184,0.45), 0 0 34px rgba(54,233,255,0.22);
 }
-.small-muted { color: #777; font-size: 14px; }
+.small-muted {
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+}
 .top-app-header {
-    padding-top: 10px;
-    padding-bottom: 12px;
+    padding: 18px 20px 20px 20px;
     overflow: visible;
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.035));
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.16);
+    backdrop-filter: blur(20px);
+    position: relative;
+}
+.top-app-header::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan));
+    border-radius: 999px;
 }
 .fresha-hero {
-    background: linear-gradient(135deg, #ffffff 0%, #fff0f7 100%);
-    border: 1px solid #f4c9dd;
-    border-radius: 24px;
-    padding: 22px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.11), rgba(255,255,255,0.035));
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    padding: 24px;
     margin-bottom: 18px;
-    box-shadow: 0px 8px 24px rgba(122,31,77,0.08);
+    box-shadow: 0px 18px 50px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14);
+    backdrop-filter: blur(18px);
 }
-.fresha-title { font-size: 30px; font-weight: 850; color: #41122a; margin-bottom: 4px; }
-.fresha-subtitle { color: #7b6170; font-size: 15px; }
+.fresha-title {
+    font-size: 31px;
+    font-weight: 950;
+    color: #ffffff;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+}
+.fresha-subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+}
 .fresha-stat-card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 16px;
-    border: 1px solid #f1d6e3;
-    box-shadow: 0px 5px 18px rgba(0,0,0,0.05);
+    background: linear-gradient(145deg, rgba(255,255,255,0.105), rgba(255,255,255,0.035));
+    border-radius: 22px;
+    padding: 17px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0px 14px 36px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.12);
     margin-bottom: 10px;
+    backdrop-filter: blur(18px);
 }
-.fresha-stat-label { color: #8b6b7b; font-size: 13px; font-weight: 650; }
-.fresha-stat-value { color: #351020; font-size: 25px; font-weight: 850; }
+.fresha-stat-card:hover {
+    border-color: rgba(255,79,184,0.55);
+    box-shadow: 0px 18px 42px rgba(255,79,184,0.10), 0px 14px 36px rgba(0,0,0,0.28);
+}
+.fresha-stat-label {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.fresha-stat-value {
+    color: #ffffff;
+    font-size: 27px;
+    font-weight: 950;
+    text-shadow: 0 0 18px rgba(54,233,255,0.18);
+}
 .appointment-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 12px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.035));
+    border-radius: 20px;
+    padding: 13px;
     margin-bottom: 10px;
-    border: 1px solid #f1d6e3;
-    box-shadow: 0px 3px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0px 10px 26px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(16px);
 }
-.appointment-time { font-size: 18px; font-weight: 850; color: #341020; }
-.appointment-client { font-size: 15px; font-weight: 750; color: #4a2032; }
-.appointment-meta { color: #77606b; font-size: 13px; line-height: 1.35; }
+.appointment-card:hover {
+    border-color: rgba(54,233,255,0.45);
+    transform: translateY(-1px);
+}
+.appointment-time { font-size: 18px; font-weight: 950; color: var(--neon-cyan); }
+.appointment-client { font-size: 15px; font-weight: 850; color: #ffffff; }
+.appointment-meta { color: var(--text-muted); font-size: 13px; line-height: 1.35; }
 .fresha-pill { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 750; margin-top: 6px; }
-.pill-confirmada { background: #e7f8ee; color: #14783d; }
-.pill-pendiente { background: #fff4d6; color: #8a6100; }
-.pill-cancelada { background: #ffe3e3; color: #a32626; }
-.pill-completada { background: #e7f1ff; color: #2458a8; }
+.pill-confirmada { background: rgba(54,233,255,0.16); color: var(--neon-cyan); border: 1px solid rgba(54,233,255,0.35); }
+.pill-pendiente { background: rgba(255,204,79,0.15); color: #ffd166; border: 1px solid rgba(255,209,102,0.35); }
+.pill-cancelada { background: rgba(255,79,110,0.14); color: #ff6b8a; border: 1px solid rgba(255,107,138,0.35); }
+.pill-completada { background: rgba(155,92,255,0.18); color: #c7a8ff; border: 1px solid rgba(155,92,255,0.40); }
 .day-box {
-    background: white;
-    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
     padding: 12px;
     min-height: 230px;
-    box-shadow: 0px 3px 12px rgba(0,0,0,0.07);
+    box-shadow: 0px 12px 32px rgba(0,0,0,0.22);
     margin-bottom: 12px;
+    backdrop-filter: blur(16px);
+    color: var(--text-main);
 }
 .quick-action-box {
-    background: #fffafc;
-    border: 1px dashed #e9accb;
-    border-radius: 18px;
-    padding: 14px;
+    background: linear-gradient(145deg, rgba(255,79,184,0.12), rgba(54,233,255,0.07));
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 20px;
+    padding: 15px;
     margin-top: 10px;
+    color: var(--text-main);
+    box-shadow: 0px 14px 34px rgba(0,0,0,0.22);
 }
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #fff7fb 0%, #ffffff 100%);
-    border-right: 1px solid #f1d6e3;
+    background: linear-gradient(180deg, rgba(14,15,27,0.98) 0%, rgba(8,8,15,0.98) 100%);
+    border-right: 1px solid rgba(255,255,255,0.11);
+    box-shadow: 18px 0 55px rgba(0,0,0,0.32);
 }
 section[data-testid="stSidebar"] h3 {
-    color: #351020;
-    font-weight: 850;
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: 0.03em;
 }
 section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
     color: #8b6b7b;
     font-weight: 650;
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label {
-    background: #ffffff;
-    border: 1px solid #f1d6e3;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.10);
     border-radius: 16px;
-    padding: 9px 11px;
+    padding: 10px 12px;
     margin-bottom: 7px;
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.04);
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.16);
     transition: all 0.15s ease-in-out;
+    backdrop-filter: blur(12px);
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
-    border-color: #d985b2;
-    background: #fff0f7;
-    transform: translateX(2px);
+    border-color: rgba(54,233,255,0.45);
+    background: rgba(54,233,255,0.08);
+    transform: translateX(3px);
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
-    background: #111111;
-    border-color: #111111;
-    box-shadow: 0px 6px 16px rgba(17,17,17,0.18);
+    background: linear-gradient(135deg, rgba(255,79,184,0.95), rgba(155,92,255,0.95));
+    border-color: rgba(255,255,255,0.22);
+    box-shadow: 0px 10px 28px rgba(255,79,184,0.25);
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p {
     color: #ffffff !important;
@@ -117,8 +205,8 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p 
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label p {
     font-size: 14px;
-    font-weight: 720;
-    color: #3b1b2a;
+    font-weight: 760;
+    color: #f3ecff;
 }
 section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     border-radius: 16px;
@@ -127,23 +215,51 @@ section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     box-shadow: 0px 3px 10px rgba(0,0,0,0.04);
 }
 .sidebar-brand-card {
-    background: #111111;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(54,233,255,0.26), transparent 28%),
+        radial-gradient(circle at 100% 0%, rgba(255,79,184,0.34), transparent 34%),
+        linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.045));
     color: white;
-    border-radius: 22px;
-    padding: 16px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 24px;
+    padding: 18px;
     margin: 8px 0 16px 0;
-    box-shadow: 0px 8px 24px rgba(0,0,0,0.14);
+    box-shadow: 0px 18px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
+    backdrop-filter: blur(18px);
 }
 .sidebar-brand-title {
     font-size: 18px;
-    font-weight: 900;
+    font-weight: 950;
     margin-bottom: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
- .sidebar-brand-subtitle {
-     font-size: 12px;
-     color: #e8dce2;
- }
-
+.sidebar-brand-subtitle {
+    font-size: 12px;
+    color: #d8c9e8;
+    letter-spacing: 0.04em;
+}
+.stButton > button, .stDownloadButton > button, div[data-testid="stLinkButton"] a {
+    border-radius: 16px !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    background: linear-gradient(135deg, rgba(255,79,184,0.92), rgba(155,92,255,0.90)) !important;
+    color: #ffffff !important;
+    font-weight: 850 !important;
+    box-shadow: 0px 12px 26px rgba(255,79,184,0.18) !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stLinkButton"] a:hover {
+    border-color: rgba(54,233,255,0.6) !important;
+    box-shadow: 0px 14px 32px rgba(54,233,255,0.16) !important;
+    transform: translateY(-1px);
+}
+div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+}
+hr {
+    border-color: rgba(255,255,255,0.12) !important;
+}
 @media screen and (max-width: 768px) {
     .block-container {
         padding-top: 1.5rem !important;
@@ -158,7 +274,7 @@ section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     }
 
     .app-title {
-        font-size: 26px !important;
+        font-size: 28px !important;
         line-height: 1.2 !important;
         margin-top: 4px !important;
         margin-bottom: 4px !important;
@@ -650,8 +766,8 @@ def render_whatsapp_buttons(row):
     mensajes = {
         "Confirmar": f"Hola {row.get('Cliente', '')}, te confirmamos tu cita el {row.get('Fecha', '')} a las {row.get('Hora', '')} para {row.get('Servicio', '')}. Gracias.",
         "Recordatorio": f"Hola {row.get('Cliente', '')}, te recordamos tu cita el {row.get('Fecha', '')} a las {row.get('Hora', '')}. Te esperamos.",
-        "Gracias": f"Hola {row.get('Cliente', '')}, muchas gracias por visitarnos en Greta Studio. Esperamos verte pronto.",
-        "Promo": f"Hola {row.get('Cliente', '')}, tenemos una promoción especial para ti en Greta Studio. Escríbenos para más detalles.",
+        "Gracias": f"Hola {row.get('Cliente', '')}, muchas gracias por visitarnos en Valentina Studio. Esperamos verte pronto.",
+        "Promo": f"Hola {row.get('Cliente', '')}, tenemos una promoción especial para ti en Valentina Studio. Escríbenos para más detalles.",
     }
 
     cols = st.columns(4)
@@ -706,8 +822,8 @@ def import_excel(file):
 st.markdown(
     """
     <div class="top-app-header">
-        <div class="app-title">💅 Greta Studio App</div>
-        <div class="small-muted">Agenda, clientes, WhatsApp, ventas, catálogo, online booking, reportes, nómina y finanzas</div>
+        <div class="app-title">VALENTINA STUDIO</div>
+        <div class="small-muted">High-tech salon command center · agenda, clientes, ventas, booking, reportes y finanzas</div>
     </div>
     """,
     unsafe_allow_html=True
@@ -717,8 +833,8 @@ st.divider()
 
 st.sidebar.markdown("""
 <div class="sidebar-brand-card">
-    <div class="sidebar-brand-title">Greta Studio</div>
-    <div class="sidebar-brand-subtitle">Salon OS · Fresha style</div>
+    <div class="sidebar-brand-title">Valentina Studio</div>
+    <div class="sidebar-brand-subtitle">Salon OS · Neon Mode</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1539,7 +1655,7 @@ elif menu == "Integraciones":
         st.markdown("""
         <div class="quick-action-box">
         <b>Pasos recomendados</b><br>
-        1. Copia el booking link de Greta Studio.<br>
+        1. Copia el booking link de Valentina Studio.<br>
         2. Pégalo en Instagram bio o botón de contacto.<br>
         3. Agrégalo como botón de reservar en Facebook Page.<br>
         4. Agrégalo en Google Business Profile como appointment link.<br>
@@ -1887,7 +2003,7 @@ elif menu == "Settings":
 
         nombre_negocio = st.text_input(
             "Nombre del negocio",
-            value=settings.get("nombre_negocio", "Greta Studio")
+            value=settings.get("nombre_negocio", "Valentina Studio")
         )
 
         telefono_negocio = st.text_input(
