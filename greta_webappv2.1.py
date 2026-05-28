@@ -210,9 +210,13 @@ section[data-testid="stSidebar"] [role="radiogroup"] label p {
 }
 section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     border-radius: 16px;
-    border-color: #f1d6e3;
-    background: #ffffff;
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.04);
+    border-color: rgba(255,255,255,0.18) !important;
+    background: rgba(255,255,255,0.10) !important;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.18);
+    color: #ffffff !important;
+}
+section[data-testid="stSidebar"] [data-baseweb="select"] * {
+    color: #ffffff !important;
 }
 .sidebar-brand-card {
     background:
@@ -259,6 +263,84 @@ div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {
 }
 hr {
     border-color: rgba(255,255,255,0.12) !important;
+}
+/* Improve text contrast for Streamlit controls in dark neon mode */
+.stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown div,
+label, p, span, div[data-testid="stText"], div[data-testid="stCaptionContainer"] {
+    color: var(--text-main) !important;
+}
+
+div[data-baseweb="tab-list"] button {
+    color: #b7aabd !important;
+    font-weight: 800 !important;
+    border-radius: 999px !important;
+    padding: 8px 14px !important;
+}
+
+div[data-baseweb="tab-list"] button[aria-selected="true"] {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(255,79,184,0.28), rgba(54,233,255,0.14)) !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    box-shadow: 0px 8px 22px rgba(255,79,184,0.14) !important;
+}
+
+div[data-baseweb="tab-border"] {
+    background: rgba(255,255,255,0.12) !important;
+}
+
+div[data-testid="stTextInput"] label,
+div[data-testid="stNumberInput"] label,
+div[data-testid="stSelectbox"] label,
+div[data-testid="stDateInput"] label,
+div[data-testid="stTimeInput"] label,
+div[data-testid="stTextArea"] label,
+div[data-testid="stFileUploader"] label,
+div[data-testid="stCheckbox"] label,
+div[data-testid="stRadio"] label {
+    color: #f8f4ff !important;
+    font-weight: 800 !important;
+}
+
+input, textarea, div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
+    color: #111111 !important;
+    background: #f8f4ff !important;
+    border-radius: 14px !important;
+}
+
+div[data-baseweb="input"] > div,
+div[data-baseweb="textarea"] > div,
+div[data-baseweb="select"] > div {
+    background: #f8f4ff !important;
+    border-color: rgba(255,255,255,0.22) !important;
+    border-radius: 14px !important;
+}
+
+div[data-baseweb="select"] span,
+div[data-baseweb="select"] div {
+    color: #111111 !important;
+}
+
+.stCodeBlock pre, code {
+    color: #111111 !important;
+    background: #f8f4ff !important;
+    border-radius: 14px !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+}
+
+.stAlert, div[data-testid="stAlert"] {
+    color: #111111 !important;
+}
+
+div[data-testid="stAlert"] * {
+    color: #111111 !important;
+}
+
+/* Keep disabled-looking text readable */
+button:disabled, input:disabled, textarea:disabled {
+    opacity: 0.85 !important;
 }
 @media screen and (max-width: 768px) {
     .block-container {
