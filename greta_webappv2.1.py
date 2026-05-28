@@ -205,8 +205,15 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p 
 }
 section[data-testid="stSidebar"] [role="radiogroup"] label p {
     font-size: 14px;
-    font-weight: 760;
+    font-weight: 780;
     color: #f3ecff;
+    letter-spacing: 0.015em;
+}
+section[data-testid="stSidebar"] [role="radiogroup"] label p::first-letter {
+    color: var(--neon-cyan);
+}
+section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p::first-letter {
+    color: #ffffff;
 }
 section[data-testid="stSidebar"] [data-baseweb="select"] > div {
     border-radius: 16px;
@@ -787,28 +794,28 @@ ROLE_MENUS = {
 
 
 MENU_ICONS = {
-    "Inicio": "🏠",
-    "Agenda Fresha": "📅",
-    "Calendario": "🗓️",
-    "Nueva cita": "➕",
-    "Ventas": "💳",
-    "Lista de clientes": "👥",
-    "Catálogo": "🏷️",
-    "Online booking": "🌐",
-    "Integraciones": "🔗",
-    "Reportes": "📊",
-    "WhatsApp": "💬",
-    "Empleados": "🧑‍💼",
-    "Nómina": "💵",
-    "Inventario": "📦",
-    "Finanzas": "📈",
-    "Settings": "⚙️",
-    "Excel / Backup": "💾"
+    "Inicio": "⌂",
+    "Agenda Fresha": "◷",
+    "Calendario": "□",
+    "Nueva cita": "+",
+    "Ventas": "◈",
+    "Lista de clientes": "◎",
+    "Catálogo": "◇",
+    "Online booking": "◌",
+    "Integraciones": "⌁",
+    "Reportes": "▰",
+    "WhatsApp": "◍",
+    "Empleados": "◉",
+    "Nómina": "$",
+    "Inventario": "▣",
+    "Finanzas": "↗",
+    "Settings": "⚙",
+    "Excel / Backup": "▤"
 }
 
 
 def menu_label(name):
-    return f"{MENU_ICONS.get(name, '•')}  {name}"
+    return f"{MENU_ICONS.get(name, '•')}   {name}"
 
 
 def clean_menu_label(label):
