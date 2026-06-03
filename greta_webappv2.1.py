@@ -769,6 +769,7 @@ ROLE_MENUS = {
         "Inventario",
         "Finanzas",
         "Settings",
+        "Ayuda / Guía",
         "Excel / Backup"
     ],
     "Recepción": [
@@ -781,14 +782,16 @@ ROLE_MENUS = {
         "Catálogo",
         "Online booking",
         "Integraciones",
-        "WhatsApp"
+        "WhatsApp",
+        "Ayuda / Guía"
     ],
     "Empleada": [
         "Inicio",
         "Agenda Fresha",
         "Calendario",
         "Lista de clientes",
-        "WhatsApp"
+        "WhatsApp",
+        "Ayuda / Guía"
     ],
 }
 
@@ -810,6 +813,7 @@ MENU_ICONS = {
     "Inventario": "▣",
     "Finanzas": "↗",
     "Settings": "⚙",
+    "Ayuda / Guía": "?",
     "Excel / Backup": "▤"
 }
 
@@ -2157,6 +2161,218 @@ elif menu == "Settings":
 
         st.dataframe(pd.DataFrame(permisos_rows), use_container_width=True)
 
+elif menu == "Ayuda / Guía":
+    render_fresha_hero(
+        "Ayuda / Guía",
+        "Una guía rápida, divertida y sin estrés para dominar Valentina Studio como toda una pro."
+    )
+
+    st.markdown("""
+    <div class="quick-action-box">
+    <b>Bienvenida a bordo 🚀</b><br>
+    Esta app es tu centro de comando del salón. Aquí puedes manejar citas, clientes, ventas, reportes, WhatsApp,
+    inventario, nómina y reservas online sin tener que brincar entre mil libretas, mensajes y hojas de Excel.
+    </div>
+    """, unsafe_allow_html=True)
+
+    guia_tabs = st.tabs([
+        "Inicio",
+        "Agenda",
+        "Clientes",
+        "Ventas",
+        "Catálogo",
+        "Online booking",
+        "Reportes",
+        "Admin"
+    ])
+
+    with guia_tabs[0]:
+        st.subheader("Inicio: el tablero de control")
+        st.markdown("""
+        **Aquí ves el pulso del salón en segundos.**
+
+        - **Ventas:** cuánto se ha registrado.
+        - **Citas de hoy:** lo que viene en el día.
+        - **Clientes:** cuánta gente tienes en tu base.
+        - **Ganancia estimada:** ventas menos gastos y materiales.
+
+        **Tip de pro:** abre esta pantalla al iniciar el día. Es como prender las luces del salón, pero en versión digital ✨.
+        """)
+
+    with guia_tabs[1]:
+        st.subheader("Agenda Fresha y Calendario")
+        st.markdown("""
+        **Agenda Fresha** es para trabajar el día a día. Aquí filtras por fecha, profesional y estado de la cita.
+
+        Usa esta sección para:
+        - revisar las citas del día;
+        - abrir detalles del cliente;
+        - ver diseño, materiales, precio y notas;
+        - mandar mensajes por WhatsApp;
+        - revisar la carga de cada profesional.
+
+        **Calendario** es para ver el panorama completo:
+        - **Día:** perfecto para recepción.
+        - **Semana:** ideal para planear horarios.
+        - **Mes:** útil para ver qué tan lleno viene el calendario.
+        - **Año:** para revisar movimiento general.
+
+        **Tip divertido:** si el día se ve lleno, respira. La app no hace uñas, pero sí te ayuda a que no se te escape nada 😄.
+        """)
+
+    with guia_tabs[2]:
+        st.subheader("Lista de clientes")
+        st.markdown("""
+        Aquí vive la memoria del salón.
+
+        Puedes guardar:
+        - nombre;
+        - teléfono;
+        - email;
+        - cumpleaños;
+        - notas y preferencias.
+
+        **Ejemplos de notas útiles:**
+        - “Prefiere tonos nude.”
+        - “No le gusta esperar.”
+        - “Quiere recordatorio por WhatsApp.”
+        - “Cliente de cumpleaños en mayo.”
+
+        **Tip de reina:** una buena nota puede convertir una cita normal en una experiencia personalizada 👑.
+        """)
+
+    with guia_tabs[3]:
+        st.subheader("Ventas")
+        st.markdown("""
+        Esta sección es para registrar pagos y mantener control del dinero.
+
+        Usa **Nueva venta** cuando una clienta pague. Selecciona:
+        - cliente;
+        - servicio;
+        - empleada;
+        - método de pago;
+        - descuento si aplica;
+        - total.
+
+        En **Historial de ventas** puedes revisar lo que se ha cobrado.
+
+        **Tip de caja:** registra la venta justo cuando termina la cita. Si dices “lo hago al rato”, el monstruo del caos aparece 🧟‍♀️.
+        """)
+
+    with guia_tabs[4]:
+        st.subheader("Catálogo")
+        st.markdown("""
+        El catálogo es tu menú de servicios.
+
+        Aquí configuras:
+        - nombre del servicio;
+        - categoría;
+        - duración;
+        - precio;
+        - si está activo;
+        - descripción.
+
+        Esto ayuda a que **Nueva cita**, **Ventas** y **Online booking** usen precios más consistentes.
+
+        **Tip premium:** si el servicio no está en el catálogo, el salón se vuelve improvisación jazz. A veces cool, pero no para cobrar 😅.
+        """)
+
+    with guia_tabs[5]:
+        st.subheader("Online booking e Integraciones")
+        st.markdown("""
+        **Online booking** simula una página donde el cliente puede solicitar cita.
+        Cuando alguien llena el formulario, la cita entra como **Pendiente**.
+
+        **Integraciones** es donde guardas los links y configuraciones para conectar el booking con:
+        - Instagram;
+        - Facebook;
+        - Google Business Profile;
+        - TikTok;
+        - Website;
+        - Meta Pixel;
+        - Google Analytics.
+
+        **Tip social:** el booking link debe estar en todos lados. Si una clienta se emociona a las 11:48 PM viendo tus diseños, que pueda reservar ahí mismo 🌙.
+        """)
+
+    with guia_tabs[6]:
+        st.subheader("Reportes")
+        st.markdown("""
+        Reportes te ayuda a ver qué está pasando con el negocio.
+
+        Puedes revisar por fechas:
+        - ventas;
+        - citas;
+        - clientes únicos;
+        - citas completadas;
+        - desempeño por empleada;
+        - desempeño por servicio;
+        - citas por estado.
+
+        **Tip de jefa:** no adivines cómo va el negocio. Mira los reportes y deja que los números hablen 📊.
+        """)
+
+    with guia_tabs[7]:
+        st.subheader("Admin: empleados, nómina, inventario, finanzas y settings")
+        st.markdown("""
+        Estas secciones son para Admin.
+
+        **Empleados:** agrega, edita o desactiva profesionales.
+
+        **Nómina:** calcula sueldo base, ventas, comisión y pago estimado.
+
+        **Inventario:** controla productos y recibe alertas cuando algo está bajo.
+
+        **Finanzas:** revisa ingresos, gastos, materiales y ganancia estimada.
+
+        **Settings:** configura nombre del negocio, moneda, online booking y usuarios/roles.
+
+        **Excel / Backup:** descarga o importa respaldo de datos.
+
+        **Tip anti-susto:** antes de hacer cambios grandes, descarga un backup. Es como guardar partida antes del jefe final 🎮.
+        """)
+
+    st.divider()
+    st.markdown("### Guía express por rol")
+
+    rol_col1, rol_col2, rol_col3 = st.columns(3)
+
+    with rol_col1:
+        st.markdown("""
+        <div class="fresha-stat-card">
+            <div class="fresha-stat-label">Admin</div>
+            <div class="small-muted">
+            Control total: ventas, reportes, empleados, nómina, inventario, finanzas, settings y backups.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with rol_col2:
+        st.markdown("""
+        <div class="fresha-stat-card">
+            <div class="fresha-stat-label">Recepción</div>
+            <div class="small-muted">
+            Maneja citas, clientes, ventas, WhatsApp, catálogo, online booking e integraciones básicas.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with rol_col3:
+        st.markdown("""
+        <div class="fresha-stat-card">
+            <div class="fresha-stat-label">Empleada</div>
+            <div class="small-muted">
+            Revisa agenda, calendario, clientes y mensajes de WhatsApp relacionados al trabajo diario.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="quick-action-box">
+    <b>Regla de oro:</b> si algo importante cambia en el salón, también debe cambiar en la app.
+    Si está en tu cabeza pero no en Valentina Studio, todavía no existe oficialmente 😉.
+    </div>
+    """, unsafe_allow_html=True)
 
 elif menu == "Excel / Backup":
     require_admin()
