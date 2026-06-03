@@ -349,7 +349,154 @@ div[data-testid="stAlert"] * {
 button:disabled, input:disabled, textarea:disabled {
     opacity: 0.85 !important;
 }
+/* iPad / tablet layout improvements */
+@media screen and (min-width: 769px) and (max-width: 1180px) {
+    .block-container {
+        padding-top: 2rem !important;
+        padding-left: 1.35rem !important;
+        padding-right: 1.35rem !important;
+        padding-bottom: 2.5rem !important;
+        max-width: 100% !important;
+    }
+
+    .top-app-header {
+        padding: 16px 18px 18px 18px !important;
+        border-radius: 24px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .app-title {
+        font-size: 34px !important;
+        letter-spacing: 0.06em !important;
+        line-height: 1.12 !important;
+    }
+
+    .small-muted {
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fresha-hero {
+        padding: 20px !important;
+        border-radius: 22px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .fresha-title {
+        font-size: 28px !important;
+        line-height: 1.16 !important;
+    }
+
+    .fresha-subtitle {
+        font-size: 14px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fresha-stat-card {
+        padding: 15px !important;
+        border-radius: 19px !important;
+        min-height: 104px !important;
+    }
+
+    .fresha-stat-value {
+        font-size: 24px !important;
+        line-height: 1.15 !important;
+    }
+
+    .appointment-card {
+        padding: 12px !important;
+        border-radius: 18px !important;
+        margin-bottom: 9px !important;
+    }
+
+    .appointment-time {
+        font-size: 17px !important;
+    }
+
+    .appointment-client {
+        font-size: 14px !important;
+    }
+
+    .appointment-meta {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+    }
+
+    .day-box {
+        min-height: 190px !important;
+        padding: 10px !important;
+        border-radius: 17px !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        min-width: 240px !important;
+        max-width: 260px !important;
+    }
+
+    .sidebar-brand-card {
+        padding: 14px !important;
+        border-radius: 20px !important;
+        margin: 4px 0 14px 0 !important;
+    }
+
+    .sidebar-brand-title {
+        font-size: 15px !important;
+        letter-spacing: 0.06em !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label {
+        padding: 10px 11px !important;
+        border-radius: 14px !important;
+        margin-bottom: 7px !important;
+        min-height: 42px !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label p {
+        font-size: 12px !important;
+        line-height: 1.15 !important;
+    }
+
+    .stButton > button, .stDownloadButton > button, div[data-testid="stLinkButton"] a {
+        min-height: 44px !important;
+        padding: 0.55rem 1rem !important;
+        border-radius: 15px !important;
+        font-size: 13px !important;
+    }
+
+    input, textarea, div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
+        min-height: 42px !important;
+        font-size: 15px !important;
+    }
+
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="textarea"] > div,
+    div[data-baseweb="select"] > div {
+        min-height: 44px !important;
+        border-radius: 14px !important;
+    }
+
+    div[data-baseweb="tab-list"] {
+        gap: 6px !important;
+        overflow-x: auto !important;
+        padding-bottom: 4px !important;
+    }
+
+    div[data-baseweb="tab-list"] button {
+        white-space: nowrap !important;
+        min-height: 40px !important;
+        font-size: 13px !important;
+        padding: 8px 13px !important;
+    }
+
+    div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+}
 @media screen and (max-width: 768px) {
+    section[data-testid="stSidebar"] {
+        min-width: 100% !important;
+    }
     .block-container {
         padding-top: 1.5rem !important;
         padding-left: 1rem !important;
@@ -480,6 +627,28 @@ def render_stat_card(label, value, note=""):
         <div class="small-muted">{note}</div>
     </div>
     """, unsafe_allow_html=True)
+
+
+def get_device_mode():
+    try:
+        width = st.context.browser.width
+    except Exception:
+        width = 1200
+
+    if width <= 768:
+        return "mobile"
+    if width <= 1180:
+        return "ipad"
+    return "desktop"
+
+
+def responsive_columns(desktop_count, ipad_count=2, mobile_count=1):
+    device_mode = get_device_mode()
+    if device_mode == "mobile":
+        return st.columns(mobile_count)
+    if device_mode == "ipad":
+        return st.columns(ipad_count)
+    return st.columns(desktop_count)
 
 
 def status_class(status):
@@ -944,7 +1113,161 @@ current_role = st.sidebar.selectbox(
 
 st.session_state.current_role = current_role
 
-st.sidebar.caption(f"Rol activo: {current_role}")
+st.sidebar.markdown("### Visual mode")
+visual_mode = st.sidebar.selectbox(
+    "Theme",
+    ["Purple Mode", "Pink Mode"],
+    index=0,
+    key="visual_mode_selector"
+)
+st.session_state.visual_mode = visual_mode
+
+if visual_mode == "Pink Mode":
+    st.markdown("""
+    <style>
+    :root {
+        --bg-main: #fff4f8;
+        --panel-dark: #fff7fb;
+        --panel-mid: #ffffff;
+        --text-main: #331522;
+        --text-muted: #7b5265;
+        --neon-pink: #ff4fa3;
+        --neon-purple: #c65cff;
+        --neon-cyan: #ff8cc8;
+        --glass-border: rgba(119, 28, 72, 0.16);
+    }
+
+    html, body, [data-testid="stAppViewContainer"] {
+        background:
+            radial-gradient(circle at 15% 0%, rgba(255,79,163,0.22), transparent 32%),
+            radial-gradient(circle at 85% 10%, rgba(255,140,200,0.22), transparent 30%),
+            radial-gradient(circle at 50% 100%, rgba(198,92,255,0.12), transparent 36%),
+            #fff4f8 !important;
+        color: #331522 !important;
+    }
+
+    [data-testid="stHeader"] {
+        background: rgba(255,244,248,0.50) !important;
+        backdrop-filter: blur(18px);
+    }
+
+    .top-app-header,
+    .fresha-hero,
+    .fresha-stat-card,
+    .appointment-card,
+    .day-box {
+        background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,232,243,0.58)) !important;
+        border-color: rgba(119, 28, 72, 0.14) !important;
+        box-shadow: 0px 18px 48px rgba(160, 50, 100, 0.13), inset 0 1px 0 rgba(255,255,255,0.72) !important;
+    }
+
+    .quick-action-box {
+        background: linear-gradient(135deg, rgba(255,79,163,0.14), rgba(255,255,255,0.78)) !important;
+        border-color: rgba(255,79,163,0.22) !important;
+        color: #331522 !important;
+    }
+
+    .app-title,
+    .fresha-title,
+    .fresha-stat-value,
+    .appointment-client,
+    h1, h2, h3, h4, h5, h6 {
+        color: #331522 !important;
+        text-shadow: none !important;
+    }
+
+    .small-muted,
+    .fresha-subtitle,
+    .fresha-stat-label,
+    .appointment-meta,
+    .stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown div,
+    label, p, span, div[data-testid="stText"], div[data-testid="stCaptionContainer"] {
+        color: #6f4a5c !important;
+    }
+
+    .appointment-time {
+        color: #d81b72 !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #ffeaf4 0%, #fff8fb 100%) !important;
+        border-right: 1px solid rgba(119, 28, 72, 0.14) !important;
+        box-shadow: 18px 0 55px rgba(160, 50, 100, 0.13) !important;
+    }
+
+    .sidebar-brand-card {
+        background:
+            radial-gradient(circle at 0% 0%, rgba(255,255,255,0.85), transparent 35%),
+            radial-gradient(circle at 100% 0%, rgba(255,79,163,0.35), transparent 38%),
+            linear-gradient(135deg, #ff4fa3, #ff8cc8) !important;
+        border-color: rgba(255,255,255,0.75) !important;
+        box-shadow: 0px 18px 48px rgba(255,79,163,0.26) !important;
+    }
+
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] [role="radiogroup"] label p,
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+        color: #331522 !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label {
+        background: rgba(255,255,255,0.78) !important;
+        border-color: rgba(119, 28, 72, 0.13) !important;
+        box-shadow: 0px 6px 18px rgba(160, 50, 100, 0.10) !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+        border-color: rgba(255,79,163,0.50) !important;
+        background: #fff2f8 !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+        background: linear-gradient(135deg, #ff4fa3, #c65cff) !important;
+        border-color: rgba(255,255,255,0.55) !important;
+        box-shadow: 0px 10px 28px rgba(255,79,163,0.28) !important;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p {
+        color: #ffffff !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="textarea"] > div,
+    div[data-baseweb="select"] > div {
+        background: #ffffff !important;
+        border-color: rgba(119, 28, 72, 0.16) !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="select"] *,
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] div,
+    input, textarea,
+    div[data-baseweb="input"] input,
+    div[data-baseweb="textarea"] textarea {
+        color: #331522 !important;
+    }
+
+    .stButton > button, .stDownloadButton > button, div[data-testid="stLinkButton"] a {
+        background: linear-gradient(135deg, #ff4fa3, #c65cff) !important;
+        color: #ffffff !important;
+        box-shadow: 0px 12px 26px rgba(255,79,163,0.22) !important;
+    }
+
+    .pill-confirmada { background: rgba(255,79,163,0.12) !important; color: #c2185b !important; border: 1px solid rgba(255,79,163,0.32) !important; }
+    .pill-pendiente { background: rgba(255,193,7,0.16) !important; color: #9a6900 !important; border: 1px solid rgba(255,193,7,0.35) !important; }
+    .pill-cancelada { background: rgba(229,57,53,0.12) !important; color: #b3261e !important; border: 1px solid rgba(229,57,53,0.30) !important; }
+    .pill-completada { background: rgba(198,92,255,0.14) !important; color: #7b2cbf !important; border: 1px solid rgba(198,92,255,0.30) !important; }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+    .theme-mode-note::after { content: "Purple Mode active"; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.sidebar.caption(f"Rol activo: {current_role} · {visual_mode}")
 
 allowed_menus = get_allowed_menus(current_role)
 menu_display = st.sidebar.radio(
@@ -990,7 +1313,7 @@ if menu == "Inicio":
 
     bajos = inventario[inventario["Cantidad"] <= inventario["Minimo"]]
 
-    s1, s2, s3, s4 = st.columns(4)
+    s1, s2, s3, s4 = responsive_columns(4, ipad_count=4, mobile_count=4)
 
     with s1:
         render_stat_card("Ventas", money(ingresos), "Total registrado")
@@ -1001,7 +1324,10 @@ if menu == "Inicio":
     with s4:
         render_stat_card("Ganancia estimada", money(ganancia), "Ventas - gastos - materiales")
 
-    left, right = st.columns([1.4, 1])
+    if get_device_mode() == "desktop":
+        left, right = st.columns([1.4, 1])
+    else:
+        left, right = st.columns(2)
 
     with left:
         st.markdown("### Agenda de hoy")
@@ -1046,7 +1372,7 @@ elif menu == "Agenda Fresha":
         st.session_state.empleados["Activo"] == True
     ]["Nombre"].tolist()
 
-    top1, top2, top3 = st.columns(3)
+    top1, top2, top3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
     with top1:
         fecha_agenda = st.date_input(
@@ -1085,7 +1411,7 @@ elif menu == "Agenda Fresha":
             )
         ]
 
-    k1, k2, k3 = st.columns(3)
+    k1, k2, k3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
     with k1:
         render_stat_card("Citas", len(citas_dia), "Resultado actual")
@@ -1099,7 +1425,10 @@ elif menu == "Agenda Fresha":
         clientes_unicos = citas_dia["Cliente"].nunique() if not citas_dia.empty else 0
         render_stat_card("Clientes únicos", clientes_unicos, "En vista")
 
-    agenda_col, detalle_col = st.columns([1.4, 1])
+    if get_device_mode() == "desktop":
+        agenda_col, detalle_col = st.columns([1.4, 1])
+    else:
+        agenda_col, detalle_col = st.columns(2)
 
     with agenda_col:
         st.markdown("### Timeline del día")
@@ -1330,7 +1659,7 @@ elif menu == "Nueva cita":
     servicios_lista = catalogo[catalogo["Activo"] == True]["Servicio"].tolist()
 
     with st.form("form_nueva_cita"):
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
         with c1:
             fecha_cita = st.date_input("Fecha", value=date.today())
@@ -1392,7 +1721,7 @@ elif menu == "Ventas":
 
     ventas_hoy = ventas[ventas["Fecha_dt"].dt.date == date.today()]
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = responsive_columns(4, ipad_count=4, mobile_count=4)
 
     with c1:
         render_stat_card("Ventas hoy", money(ventas_hoy["Total"].sum()), "Total cobrado hoy")
@@ -1417,7 +1746,7 @@ elif menu == "Ventas":
         servicios_lista = catalogo[catalogo["Activo"] == True]["Servicio"].tolist()
 
         with st.form("form_venta"):
-            v1, v2, v3 = st.columns(3)
+            v1, v2, v3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
             with v1:
                 fecha_venta = st.date_input("Fecha", value=date.today(), key="venta_fecha")
@@ -1532,7 +1861,7 @@ elif menu == "Catálogo":
 
     with tab2:
         with st.form("form_servicio_catalogo"):
-            c1, c2, c3 = st.columns(3)
+            c1, c2, c3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
             with c1:
                 servicio = st.text_input("Nombre del servicio")
@@ -1586,7 +1915,7 @@ elif menu == "Online booking":
     ]["Nombre"].tolist()
 
     with st.form("form_online_booking"):
-        b1, b2, b3 = st.columns(3)
+        b1, b2, b3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
         with b1:
             cliente_nombre = st.text_input("Nombre del cliente")
@@ -1835,7 +2164,7 @@ elif menu == "Reportes":
     ventas["Fecha_dt"] = pd.to_datetime(ventas["Fecha"], errors="coerce")
     ventas["Total"] = pd.to_numeric(ventas["Total"], errors="coerce").fillna(0)
 
-    r1, r2 = st.columns(2)
+    r1, r2 = responsive_columns(2, ipad_count=2, mobile_count=1)
 
     with r1:
         desde = st.date_input(
@@ -1861,7 +2190,7 @@ elif menu == "Reportes":
         (ventas["Fecha_dt"].dt.date <= hasta)
     ]
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = responsive_columns(4, ipad_count=4, mobile_count=4)
 
     with c1:
         render_stat_card("Ventas", money(ventas_periodo["Total"].sum()), "Periodo seleccionado")
@@ -2057,7 +2386,7 @@ elif menu == "Finanzas":
     materiales = citas["Costo materiales"].sum()
     ganancia = ingresos - gastos_total - materiales
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = responsive_columns(4, ipad_count=4, mobile_count=4)
 
     with c1:
         render_stat_card("Ingresos", money(ingresos), "Ventas")
@@ -2335,7 +2664,7 @@ elif menu == "Ayuda / Guía":
     st.divider()
     st.markdown("### Guía express por rol")
 
-    rol_col1, rol_col2, rol_col3 = st.columns(3)
+    rol_col1, rol_col2, rol_col3 = responsive_columns(3, ipad_count=3, mobile_count=1)
 
     with rol_col1:
         st.markdown("""
