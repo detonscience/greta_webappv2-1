@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, time, timedelta
+from datetime import date, time, timedelta, datetime
 import calendar
 from io import BytesIO
 from urllib.parse import quote
@@ -10,6 +10,9 @@ st.set_page_config(page_title="VALENTINA STUDIO", page_icon="✨", layout="wide"
 
 GOOGLE_DRIVE_BACKUP_LINK = "https://drive.google.com/drive/folders/1Sh6y2iN0n5wM3sh-QpKel5PExf7dDNcP?usp=drive_link"
 LOCAL_BACKUP_FOLDER = Path.home() / "Documents" / "Valentina_Studio_Backups"
+AUTO_BACKUP_EVERY_MINUTES = 60
+AUTO_BACKUP_KEEP_COPIES = 72
+AUTO_BACKUP_FOLDER_NAME = "Valentina_Studio_Auto_Backups"
 
 st.markdown("""
 <style>
@@ -1127,23 +1130,87 @@ def export_excel():
     return output.getvalue()
 
 
-def save_backup_to_local_computer(destination_folder=None):
+def save_backup_to_local_computer(destination_folder=None, prefix="valentina_studio_backup"):
     if destination_folder:
         backup_folder = Path(str(destination_folder)).expanduser()
     else:
         backup_folder = LOCAL_BACKUP_FOLDER
 
     backup_folder.mkdir(parents=True, exist_ok=True)
-    timestamp = date.today().strftime("%Y-%m-%d")
-    backup_path = backup_folder / f"valentina_studio_backup_{timestamp}.xlsx"
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backup_path = backup_folder / f"{prefix}_{timestamp}.xlsx"
 
     counter = 2
     while backup_path.exists():
-        backup_path = backup_folder / f"valentina_studio_backup_{timestamp}_{counter}.xlsx"
+        backup_path = backup_folder / f"{prefix}_{timestamp}_{counter}.xlsx"
         counter += 1
 
     backup_path.write_bytes(export_excel())
     return backup_path
+
+
+def find_google_drive_sync_folder():
+    possible_roots = [
+        Path.home() / "Library" / "CloudStorage",
+        Path.home() / "Google Drive",
+        Path.home() / "My Drive",
+    ]
+
+    for root in possible_roots:
+        if not root.exists():
+            continue
+
+        if root.name in ["Google Drive", "My Drive"]:
+            return root / AUTO_BACKUP_FOLDER_NAME
+
+        for candidate in sorted(root.glob("GoogleDrive*")):
+            my_drive = candidate / "My Drive"
+            if my_drive.exists():
+                return my_drive / AUTO_BACKUP_FOLDER_NAME
+
+            if candidate.exists():
+                return candidate / AUTO_BACKUP_FOLDER_NAME
+
+    return None
+
+
+def cleanup_old_auto_backups(backup_folder, keep_copies=AUTO_BACKUP_KEEP_COPIES):
+    backup_folder = Path(backup_folder)
+    backups = sorted(
+        backup_folder.glob("valentina_studio_auto_backup_*.xlsx"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+
+    for old_backup in backups[keep_copies:]:
+        try:
+            old_backup.unlink()
+        except Exception:
+            pass
+
+
+def run_hidden_hourly_auto_backup():
+    now = datetime.now()
+    last_backup = st.session_state.get("hidden_last_auto_backup_at")
+
+    if last_backup is not None:
+        elapsed_minutes = (now - last_backup).total_seconds() / 60
+        if elapsed_minutes < AUTO_BACKUP_EVERY_MINUTES:
+            return
+
+    google_drive_folder = find_google_drive_sync_folder()
+    backup_folder = google_drive_folder if google_drive_folder else (LOCAL_BACKUP_FOLDER / AUTO_BACKUP_FOLDER_NAME)
+
+    try:
+        backup_path = save_backup_to_local_computer(
+            backup_folder,
+            prefix="valentina_studio_auto_backup"
+        )
+        cleanup_old_auto_backups(backup_folder)
+        st.session_state.hidden_last_auto_backup_at = now
+        st.session_state.hidden_last_auto_backup_path = str(backup_path)
+    except Exception as exc:
+        st.session_state.hidden_last_auto_backup_error = str(exc)
 
 
 def render_backup_banner():
@@ -1273,6 +1340,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.divider()
+run_hidden_hourly_auto_backup()
+st.markdown(
+    "<meta http-equiv='refresh' content='3600'>",
+    unsafe_allow_html=True
+)
 render_backup_banner()
 st.divider()
 
