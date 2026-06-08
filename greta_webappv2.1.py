@@ -1566,8 +1566,6 @@ st.markdown(
     "<meta http-equiv='refresh' content='3600'>",
     unsafe_allow_html=True
 )
-render_backup_banner()
-st.divider()
 
 
 st.sidebar.markdown("""
@@ -1755,41 +1753,6 @@ menu_display = st.sidebar.radio(
 menu = clean_menu_label(menu_display)
 
 
-if st.session_state.get("current_role", "Admin") == "Admin":
-    with st.expander("🧹 Borrar datos incorrectos de pruebas", expanded=False):
-        st.warning("Primero respalda. Después selecciona solamente los registros incorrectos. Nada se borra hasta marcar la confirmación.")
-
-        cleanup_tabs = st.tabs([
-            "Citas",
-            "Clientes",
-            "Ventas",
-            "Servicios",
-            "Empleados",
-            "Inventario",
-            "Gastos",
-            "Usuarios"
-        ])
-
-        with cleanup_tabs[0]:
-            render_delete_rows_tool("Citas", "citas", label_column="Cliente", key_prefix="global_cleanup")
-        with cleanup_tabs[1]:
-            render_delete_rows_tool("Clientes", "clientes", label_column="Nombre", key_prefix="global_cleanup")
-        with cleanup_tabs[2]:
-            render_delete_rows_tool("Ventas", "ventas", label_column="Cliente", key_prefix="global_cleanup")
-        with cleanup_tabs[3]:
-            render_delete_rows_tool("Servicios", "catalogo", label_column="Servicio", key_prefix="global_cleanup")
-        with cleanup_tabs[4]:
-            render_delete_rows_tool("Empleados", "empleados", label_column="Nombre", key_prefix="global_cleanup")
-        with cleanup_tabs[5]:
-            render_delete_rows_tool("Inventario", "inventario", label_column="Producto", key_prefix="global_cleanup")
-        with cleanup_tabs[6]:
-            render_delete_rows_tool("Gastos", "gastos", label_column="Concepto", key_prefix="global_cleanup")
-        with cleanup_tabs[7]:
-            render_delete_rows_tool("Usuarios", "usuarios", label_column="Usuario", key_prefix="global_cleanup")
-
-    st.divider()
-
-
 if menu == "Inicio":
     render_fresha_hero(
         "Inicio del estudio",
@@ -1870,6 +1833,42 @@ if menu == "Inicio":
             st.dataframe(bajos, use_container_width=True)
         else:
             st.success("Inventario sin alertas críticas.")
+
+    st.divider()
+    st.markdown("### Backups, descargas y herramientas de prueba")
+    render_backup_banner()
+
+    if st.session_state.get("current_role", "Admin") == "Admin":
+        with st.expander("🧹 Borrar datos incorrectos de pruebas", expanded=False):
+            st.warning("Primero respalda. Después selecciona solamente los registros incorrectos. Nada se borra hasta marcar la confirmación.")
+
+            cleanup_tabs = st.tabs([
+                "Citas",
+                "Clientes",
+                "Ventas",
+                "Servicios",
+                "Empleados",
+                "Inventario",
+                "Gastos",
+                "Usuarios"
+            ])
+
+            with cleanup_tabs[0]:
+                render_delete_rows_tool("Citas", "citas", label_column="Cliente", key_prefix="global_cleanup")
+            with cleanup_tabs[1]:
+                render_delete_rows_tool("Clientes", "clientes", label_column="Nombre", key_prefix="global_cleanup")
+            with cleanup_tabs[2]:
+                render_delete_rows_tool("Ventas", "ventas", label_column="Cliente", key_prefix="global_cleanup")
+            with cleanup_tabs[3]:
+                render_delete_rows_tool("Servicios", "catalogo", label_column="Servicio", key_prefix="global_cleanup")
+            with cleanup_tabs[4]:
+                render_delete_rows_tool("Empleados", "empleados", label_column="Nombre", key_prefix="global_cleanup")
+            with cleanup_tabs[5]:
+                render_delete_rows_tool("Inventario", "inventario", label_column="Producto", key_prefix="global_cleanup")
+            with cleanup_tabs[6]:
+                render_delete_rows_tool("Gastos", "gastos", label_column="Concepto", key_prefix="global_cleanup")
+            with cleanup_tabs[7]:
+                render_delete_rows_tool("Usuarios", "usuarios", label_column="Usuario", key_prefix="global_cleanup")
 
 
 elif menu == "Agenda Fresha":
