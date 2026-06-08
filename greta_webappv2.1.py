@@ -1270,27 +1270,42 @@ def render_delete_rows_tool(title, session_key, label_column=None, key_prefix="d
     df = st.session_state.get(session_key, pd.DataFrame()).copy()
 
     st.markdown(f"### Borrar datos incorrectos: {title}")
-    st.caption("Primero respalda. Después selecciona los registros incorrectos y bórralos. Esto no borra otros módulos.")
+    st.caption("Primero respalda. Marca con el puntito/checkbox las filas incorrectas y confirma antes de borrar.")
 
     if df.empty:
         st.info(f"No hay datos en {title}.")
         return
 
-    display_df = df.copy().reset_index().rename(columns={"index": "Fila"})
-    st.dataframe(display_df, use_container_width=True)
+    delete_df = df.copy().reset_index().rename(columns={"index": "Fila original"})
+    delete_df.insert(0, "Borrar", False)
 
-    if label_column and label_column in df.columns:
-        options = [f"{idx} · {df.loc[idx, label_column]}" for idx in df.index]
-    else:
-        options = [str(idx) for idx in df.index]
-
-    selected = st.multiselect(
-        f"Selecciona filas a borrar de {title}",
-        options,
-        key=f"{key_prefix}_{session_key}_rows"
+    edited_delete_df = st.data_editor(
+        delete_df,
+        use_container_width=True,
+        hide_index=True,
+        disabled=[col for col in delete_df.columns if col != "Borrar"],
+        column_config={
+            "Borrar": st.column_config.CheckboxColumn(
+                "● Borrar",
+                help="Marca esta fila si quieres borrarla.",
+                default=False,
+            )
+        },
+        key=f"{key_prefix}_{session_key}_delete_grid"
     )
 
-    selected_indexes = [int(str(item).split(" · ")[0]) for item in selected]
+    selected_rows = edited_delete_df[edited_delete_df["Borrar"] == True]
+    selected_indexes = selected_rows["Fila original"].astype(int).tolist()
+
+    if selected_indexes:
+        st.warning(f"Seleccionaste {len(selected_indexes)} registro(s) para borrar de {title}.")
+        st.dataframe(
+            selected_rows.drop(columns=["Borrar"]),
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("Marca uno o más registros en la columna ● Borrar.")
 
     confirm = st.checkbox(
         f"Confirmo que quiero borrar {len(selected_indexes)} registro(s) de {title}",
@@ -1298,7 +1313,7 @@ def render_delete_rows_tool(title, session_key, label_column=None, key_prefix="d
     )
 
     if st.button(
-        f"Borrar seleccionado de {title}",
+        f"Borrar registros marcados de {title}",
         key=f"{key_prefix}_{session_key}_button",
         disabled=not selected_indexes or not confirm
     ):
