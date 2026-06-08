@@ -1320,6 +1320,9 @@ def render_backup_banner():
     with b3:
         st.link_button("Abrir Google Drive", GOOGLE_DRIVE_BACKUP_LINK)
 
+    with st.expander("Excel de emergencia / subir datos", expanded=False):
+        render_excel_emergency_import_export()
+
 
 def delete_rows_by_indexes(session_key, indexes_to_delete):
     if not indexes_to_delete:
