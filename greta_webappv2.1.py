@@ -384,13 +384,72 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
 }
 
-.stAlert, div[data-testid="stAlert"] {
-    color: #111111 !important;
-}
+ .stAlert, div[data-testid="stAlert"] {
+     background: linear-gradient(135deg, rgba(54,233,255,0.18), rgba(155,92,255,0.12)) !important;
+     border: 1px solid rgba(54,233,255,0.38) !important;
+     border-radius: 16px !important;
+     color: #ffffff !important;
+     box-shadow: 0px 12px 30px rgba(54,233,255,0.10), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+ }
 
-div[data-testid="stAlert"] * {
-    color: #111111 !important;
-}
+ div[data-testid="stAlert"] * {
+     color: #ffffff !important;
+     font-weight: 750 !important;
+ }
+
+ /* Better contrast for emergency Excel area */
+ div[data-testid="stExpander"] {
+     border-color: rgba(255,255,255,0.18) !important;
+     border-radius: 18px !important;
+     background: rgba(255,255,255,0.025) !important;
+ }
+
+ div[data-testid="stExpander"] details summary,
+ div[data-testid="stExpander"] details summary * {
+     color: #ffffff !important;
+     font-weight: 900 !important;
+ }
+
+ div[data-testid="stFileUploader"] section {
+     background: linear-gradient(135deg, rgba(255,255,255,0.13), rgba(255,255,255,0.06)) !important;
+     border: 1px solid rgba(255,255,255,0.20) !important;
+     border-radius: 16px !important;
+ }
+
+ div[data-testid="stFileUploader"] section * {
+     color: #ffffff !important;
+     font-weight: 750 !important;
+ }
+
+ .excel-emergency-note {
+     background:
+         radial-gradient(circle at 0% 0%, rgba(54,233,255,0.26), transparent 32%),
+         linear-gradient(135deg, rgba(54,233,255,0.18), rgba(155,92,255,0.10));
+     border: 1px solid rgba(54,233,255,0.42);
+     border-left: 6px solid #36e9ff;
+     border-radius: 18px;
+     padding: 14px 16px;
+     margin: 10px 0 16px 0;
+     color: #eaffff !important;
+     font-size: 14px;
+     font-weight: 800;
+     box-shadow: 0px 14px 34px rgba(54,233,255,0.10), inset 0 1px 0 rgba(255,255,255,0.16);
+ }
+
+ .excel-import-warning {
+     background:
+         radial-gradient(circle at 0% 0%, rgba(255,215,94,0.32), transparent 32%),
+         linear-gradient(135deg, rgba(255,184,28,0.24), rgba(255,79,184,0.10));
+     border: 1px solid rgba(255,215,94,0.52);
+     border-left: 6px solid #ffd75e;
+     border-radius: 18px;
+     padding: 14px 16px;
+     margin: 10px 0 16px 0;
+     color: #fff7d6 !important;
+     font-size: 14px;
+     font-weight: 850;
+     box-shadow: 0px 14px 34px rgba(255,184,28,0.12), inset 0 1px 0 rgba(255,255,255,0.16);
+ }
 
 /* Keep disabled-looking text readable */
 button:disabled, input:disabled, textarea:disabled {
@@ -1431,7 +1490,11 @@ def import_excel(file):
 
 def render_excel_emergency_import_export():
     st.markdown("### Excel de emergencia")
-    st.info("Descarga una hoja en blanco con todos los headers correctos. En una emergencia puedes llenar ese Excel y volverlo a subir aquí.")
+    st.markdown("""
+    <div class="excel-emergency-note">
+        Descarga una hoja en blanco con todos los headers correctos. En una emergencia puedes llenar ese Excel y volverlo a subir aquí.
+    </div>
+    """, unsafe_allow_html=True)
 
     e1, e2 = st.columns(2)
 
@@ -1455,7 +1518,11 @@ def render_excel_emergency_import_export():
 
     st.divider()
     st.markdown("### Subir datos desde Excel")
-    st.warning("Esto puede reemplazar tablas actuales con las hojas que vengan en el Excel. Primero descarga un backup completo antes de importar.")
+    st.markdown("""
+    <div class="excel-import-warning">
+        Esto puede reemplazar tablas actuales con las hojas que vengan en el Excel. Primero descarga un backup completo antes de importar.
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_excel = st.file_uploader(
         "Subir Excel de backup o plantilla llena",
