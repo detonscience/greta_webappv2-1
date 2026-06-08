@@ -8,7 +8,8 @@ from pathlib import Path
 
 st.set_page_config(page_title="VALENTINA STUDIO", page_icon="✨", layout="wide")
 
-GOOGLE_DRIVE_BACKUP_LINK = "https://drive.google.com/drive/folders/1Sh6y2iN0n5wM3sh-QpKel5PExf7dDNcP?usp=drive_link"
+GOOGLE_DRIVE_BACKUP_LINK = "https://drive.google.com/drive/folders/1Sh6y2iN0n5wM3sh-QpKel5PExf7dDNcP?usp=sharing"
+GOOGLE_DRIVE_FOLDER_ID = "1Sh6y2iN0n5wM3sh-QpKel5PExf7dDNcP"
 LOCAL_BACKUP_FOLDER = Path.home() / "Documents" / "Valentina_Studio_Backups"
 AUTO_BACKUP_EVERY_MINUTES = 60
 AUTO_BACKUP_KEEP_COPIES = 72
@@ -1215,7 +1216,7 @@ def run_hidden_hourly_auto_backup():
 
 def render_backup_banner():
     st.warning("⚠ Antes de borrar o hacer pruebas: descarga un backup Excel, guarda copia local y sube una copia a Google Drive.")
-    st.caption("Google Drive automático requiere autenticación/API. Por ahora puedes abrir la carpeta de Drive y subir manualmente el Excel descargado.")
+    st.caption("Google Drive automático directo requiere Drive API. Por ahora el backup automático funciona con Google Drive Desktop; el botón abre tu carpeta privada de Drive.")
 
     backup_destination = st.text_input(
         "Carpeta para guardar backup local",
