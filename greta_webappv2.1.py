@@ -4,8 +4,12 @@ from datetime import date, time, timedelta
 import calendar
 from io import BytesIO
 from urllib.parse import quote
+from pathlib import Path
 
 st.set_page_config(page_title="VALENTINA STUDIO", page_icon="✨", layout="wide")
+
+GOOGLE_DRIVE_BACKUP_LINK = "https://drive.google.com/drive/folders/1Sh6y2iN0n5wM3sh-QpKel5PExf7dDNcP?usp=drive_link"
+LOCAL_BACKUP_FOLDER = Path.home() / "Documents" / "Valentina_Studio_Backups"
 
 st.markdown("""
 <style>
@@ -1123,6 +1127,102 @@ def export_excel():
     return output.getvalue()
 
 
+def save_backup_to_local_computer():
+    LOCAL_BACKUP_FOLDER.mkdir(parents=True, exist_ok=True)
+    timestamp = date.today().strftime("%Y-%m-%d")
+    backup_path = LOCAL_BACKUP_FOLDER / f"valentina_studio_backup_{timestamp}.xlsx"
+
+    counter = 2
+    while backup_path.exists():
+        backup_path = LOCAL_BACKUP_FOLDER / f"valentina_studio_backup_{timestamp}_{counter}.xlsx"
+        counter += 1
+
+    backup_path.write_bytes(export_excel())
+    return backup_path
+
+
+def render_backup_banner():
+    st.warning("⚠ Antes de borrar o hacer pruebas: descarga un backup Excel, guarda copia local y sube una copia a Google Drive.")
+
+    b1, b2, b3 = st.columns(3)
+
+    with b1:
+        if st.button("Guardar backup local", key="global_save_local_backup"):
+            path = save_backup_to_local_computer()
+            st.success(f"Backup guardado en: {path}")
+
+    with b2:
+        st.download_button(
+            "Descargar backup Excel",
+            data=export_excel(),
+            file_name=f"valentina_studio_backup_{date.today()}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="global_download_backup_excel"
+        )
+
+    with b3:
+        st.link_button("Abrir Google Drive", GOOGLE_DRIVE_BACKUP_LINK)
+
+
+def delete_rows_by_indexes(session_key, indexes_to_delete):
+    if not indexes_to_delete:
+        return 0
+
+    df = st.session_state[session_key].copy()
+    valid_indexes = [int(i) for i in indexes_to_delete if int(i) in df.index]
+
+    if not valid_indexes:
+        return 0
+
+    st.session_state[session_key] = df.drop(index=valid_indexes).reset_index(drop=True)
+
+    if session_key == "citas":
+        ensure_cita_ids()
+
+    return len(valid_indexes)
+
+
+def render_delete_rows_tool(title, session_key, label_column=None, key_prefix="delete_tool"):
+    df = st.session_state.get(session_key, pd.DataFrame()).copy()
+
+    st.markdown(f"### Borrar datos incorrectos: {title}")
+    st.caption("Primero respalda. Después selecciona los registros incorrectos y bórralos. Esto no borra otros módulos.")
+
+    if df.empty:
+        st.info(f"No hay datos en {title}.")
+        return
+
+    display_df = df.copy().reset_index().rename(columns={"index": "Fila"})
+    st.dataframe(display_df, use_container_width=True)
+
+    if label_column and label_column in df.columns:
+        options = [f"{idx} · {df.loc[idx, label_column]}" for idx in df.index]
+    else:
+        options = [str(idx) for idx in df.index]
+
+    selected = st.multiselect(
+        f"Selecciona filas a borrar de {title}",
+        options,
+        key=f"{key_prefix}_{session_key}_rows"
+    )
+
+    selected_indexes = [int(str(item).split(" · ")[0]) for item in selected]
+
+    confirm = st.checkbox(
+        f"Confirmo que quiero borrar {len(selected_indexes)} registro(s) de {title}",
+        key=f"{key_prefix}_{session_key}_confirm"
+    )
+
+    if st.button(
+        f"Borrar seleccionado de {title}",
+        key=f"{key_prefix}_{session_key}_button",
+        disabled=not selected_indexes or not confirm
+    ):
+        deleted = delete_rows_by_indexes(session_key, selected_indexes)
+        st.success(f"Se borraron {deleted} registro(s) de {title}.")
+        st.rerun()
+
+
 def import_excel(file):
     xls = pd.ExcelFile(file)
 
@@ -1156,6 +1256,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+st.divider()
+render_backup_banner()
 st.divider()
 
 
@@ -1342,6 +1444,41 @@ menu_display = st.sidebar.radio(
     label_visibility="collapsed"
 )
 menu = clean_menu_label(menu_display)
+
+
+if st.session_state.get("current_role", "Admin") == "Admin":
+    with st.expander("🧹 Borrar datos incorrectos de pruebas", expanded=False):
+        st.warning("Primero respalda. Después selecciona solamente los registros incorrectos. Nada se borra hasta marcar la confirmación.")
+
+        cleanup_tabs = st.tabs([
+            "Citas",
+            "Clientes",
+            "Ventas",
+            "Servicios",
+            "Empleados",
+            "Inventario",
+            "Gastos",
+            "Usuarios"
+        ])
+
+        with cleanup_tabs[0]:
+            render_delete_rows_tool("Citas", "citas", label_column="Cliente", key_prefix="global_cleanup")
+        with cleanup_tabs[1]:
+            render_delete_rows_tool("Clientes", "clientes", label_column="Nombre", key_prefix="global_cleanup")
+        with cleanup_tabs[2]:
+            render_delete_rows_tool("Ventas", "ventas", label_column="Cliente", key_prefix="global_cleanup")
+        with cleanup_tabs[3]:
+            render_delete_rows_tool("Servicios", "catalogo", label_column="Servicio", key_prefix="global_cleanup")
+        with cleanup_tabs[4]:
+            render_delete_rows_tool("Empleados", "empleados", label_column="Nombre", key_prefix="global_cleanup")
+        with cleanup_tabs[5]:
+            render_delete_rows_tool("Inventario", "inventario", label_column="Producto", key_prefix="global_cleanup")
+        with cleanup_tabs[6]:
+            render_delete_rows_tool("Gastos", "gastos", label_column="Concepto", key_prefix="global_cleanup")
+        with cleanup_tabs[7]:
+            render_delete_rows_tool("Usuarios", "usuarios", label_column="Usuario", key_prefix="global_cleanup")
+
+    st.divider()
 
 
 if menu == "Inicio":
@@ -2391,6 +2528,9 @@ elif menu == "Empleados":
         st.session_state.empleados = editado
         st.success("Empleados actualizados.")
 
+    st.divider()
+    render_delete_rows_tool("Empleados", "empleados", label_column="Nombre", key_prefix="empleados")
+
 
 elif menu == "Nómina":
     require_admin()
@@ -2470,6 +2610,9 @@ elif menu == "Inventario":
     if st.button("Guardar inventario"):
         st.session_state.inventario = editado
         st.success("Inventario actualizado.")
+
+    st.divider()
+    render_delete_rows_tool("Inventario", "inventario", label_column="Producto", key_prefix="inventario")
 
 
 elif menu == "Finanzas":
