@@ -920,6 +920,72 @@ def init_data():
 init_data()
 
 
+def ensure_cita_ids():
+    if "citas" not in st.session_state:
+        return
+
+    citas = st.session_state.citas.copy()
+
+    if "Cita ID" not in citas.columns:
+        citas.insert(0, "Cita ID", [f"CITA-{i + 1:03d}" for i in range(len(citas))])
+    else:
+        used_ids = set()
+        next_number = 1
+        fixed_ids = []
+
+        for raw_id in citas["Cita ID"].astype(str).tolist():
+            clean_id = raw_id.strip()
+
+            if clean_id and clean_id.lower() != "nan" and clean_id not in used_ids:
+                fixed_ids.append(clean_id)
+                used_ids.add(clean_id)
+                continue
+
+            while f"CITA-{next_number:03d}" in used_ids:
+                next_number += 1
+
+            new_id = f"CITA-{next_number:03d}"
+            fixed_ids.append(new_id)
+            used_ids.add(new_id)
+            next_number += 1
+
+        citas["Cita ID"] = fixed_ids
+
+    st.session_state.citas = citas
+
+
+def next_cita_id():
+    ensure_cita_ids()
+
+    citas = st.session_state.citas.copy()
+    max_number = 0
+
+    if "Cita ID" in citas.columns:
+        for raw_id in citas["Cita ID"].astype(str).tolist():
+            clean_id = raw_id.strip().upper()
+            if clean_id.startswith("CITA-"):
+                try:
+                    max_number = max(max_number, int(clean_id.replace("CITA-", "")))
+                except Exception:
+                    pass
+
+    return f"CITA-{max_number + 1:03d}"
+
+
+def delete_cita_by_id(cita_id):
+    ensure_cita_ids()
+
+    if not cita_id:
+        return
+
+    st.session_state.citas = st.session_state.citas[
+        st.session_state.citas["Cita ID"].astype(str) != str(cita_id)
+    ].reset_index(drop=True)
+
+
+ensure_cita_ids()
+
+
 ROLE_MENUS = {
     "Admin": [
         "Inicio",
@@ -1438,6 +1504,31 @@ elif menu == "Agenda Fresha":
         else:
             for _, row in citas_dia.sort_values("Hora").iterrows():
                 render_appointment_card(row)
+                with st.expander(f"Opciones: {row['Cliente']} · {row['Hora']} · {row.get('Cita ID', '')}"):
+                    cliente_info = get_client_info(row["Cliente"])
+
+                    if cliente_info is not None:
+                        st.write(f"**Teléfono:** {cliente_info.get('Telefono', '')}")
+                        st.write(f"**Email:** {cliente_info.get('Email', '')}")
+                        st.write(f"**Perfil:** {cliente_info.get('Notas', '')}")
+
+                    st.write(f"**Servicio:** {row['Servicio']}")
+                    st.write(f"**Diseño:** {row['Diseno']}")
+                    st.write(f"**Materiales:** {row['Materiales']}")
+                    st.write(f"**Precio:** {money(row['Precio'])}")
+                    st.write(f"**Estado:** {row['Estado']}")
+                    st.write(f"**Notas:** {row['Notas']}")
+                    render_whatsapp_buttons(row)
+
+                    st.divider()
+                    st.caption(f"ID de cita: {row.get('Cita ID', '')}")
+                    if st.button(
+                        "Borrar esta cita",
+                        key=f"delete_calendar_day_{row.get('Cita ID', row.name)}"
+                    ):
+                        delete_cita_by_id(row.get("Cita ID", ""))
+                        st.success("Cita borrada correctamente.")
+                        st.rerun()
 
                 with st.expander(f"Abrir cita: {row['Cliente']} · {row['Hora']}"):
                     cliente_info = get_client_info(row["Cliente"])
@@ -1453,8 +1544,17 @@ elif menu == "Agenda Fresha":
                     st.write(f"**Precio:** {money(row['Precio'])}")
                     st.write(f"**Estado:** {row['Estado']}")
                     st.write(f"**Notas:** {row['Notas']}")
-
                     render_whatsapp_buttons(row)
+
+                    st.divider()
+                    st.caption(f"ID de cita: {row.get('Cita ID', '')}")
+                    if st.button(
+                        "Borrar esta cita",
+                        key=f"delete_agenda_{row.get('Cita ID', row.name)}"
+                    ):
+                        delete_cita_by_id(row.get("Cita ID", ""))
+                        st.success("Cita borrada correctamente.")
+                        st.rerun()
 
     with detalle_col:
         st.markdown("### Vista por profesional")
@@ -1688,6 +1788,7 @@ elif menu == "Nueva cita":
 
     if guardar:
         nueva = pd.DataFrame([{
+            "Cita ID": next_cita_id(),
             "Fecha": str(fecha_cita),
             "Hora": hora_cita.strftime("%H:%M"),
             "Cliente": cliente_cita,
@@ -1961,6 +2062,7 @@ elif menu == "Online booking":
         precio_servicio = float(match.iloc[0]["Precio"]) if not match.empty else 0.0
 
         nueva_cita = pd.DataFrame([{
+            "Cita ID": next_cita_id(),
             "Fecha": str(fecha_online),
             "Hora": hora_online.strftime("%H:%M"),
             "Cliente": cliente_nombre,
@@ -2245,13 +2347,14 @@ elif menu == "WhatsApp":
         "Envía confirmaciones, recordatorios, mensajes de gracias y promociones."
     )
 
+    ensure_cita_ids()
     citas = st.session_state.citas.copy()
 
     if citas.empty:
         st.info("No hay citas.")
     else:
         opciones = citas.apply(
-            lambda r: f"{r['Fecha']} {r['Hora']} - {r['Cliente']} ({r['Servicio']})",
+            lambda r: f"{r.get('Cita ID', '')} · {r['Fecha']} {r['Hora']} - {r['Cliente']} ({r['Servicio']})",
             axis=1
         ).tolist()
 
@@ -2260,7 +2363,14 @@ elif menu == "WhatsApp":
         row = citas.iloc[opciones.index(seleccion)]
 
         render_appointment_card(row)
+        st.caption(f"ID de cita: {row.get('Cita ID', '')}")
         render_whatsapp_buttons(row)
+
+        st.divider()
+        if st.button("Borrar esta cita", key=f"delete_whatsapp_{row.get('Cita ID', row.name)}"):
+            delete_cita_by_id(row.get("Cita ID", ""))
+            st.success("Cita borrada correctamente.")
+            st.rerun()
 
 
 elif menu == "Empleados":
