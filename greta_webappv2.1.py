@@ -173,6 +173,45 @@ html, body, [data-testid="stAppViewContainer"] {
     color: var(--text-main);
     box-shadow: 0px 14px 34px rgba(0,0,0,0.22);
 }
+
+.backup-warning-banner {
+    background:
+        radial-gradient(circle at 0% 0%, rgba(255, 218, 92, 0.42), transparent 30%),
+        radial-gradient(circle at 100% 0%, rgba(255, 79, 184, 0.28), transparent 34%),
+        linear-gradient(135deg, rgba(255, 184, 28, 0.28), rgba(255, 79, 184, 0.13)) !important;
+    border: 1px solid rgba(255, 218, 92, 0.65) !important;
+    border-left: 7px solid #ffd75e !important;
+    border-radius: 22px;
+    padding: 16px 18px;
+    margin: 0 0 10px 0;
+    box-shadow: 0px 18px 46px rgba(255, 184, 28, 0.18), 0px 14px 38px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.22);
+    backdrop-filter: blur(18px);
+}
+.backup-warning-title {
+    color: #ffffff !important;
+    font-size: 16px;
+    font-weight: 950;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-shadow: 0 0 18px rgba(255, 215, 94, 0.42);
+    margin-bottom: 4px;
+}
+.backup-warning-text {
+    color: #fff5c4 !important;
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+.drive-note-banner {
+    background: linear-gradient(135deg, rgba(54,233,255,0.11), rgba(255,255,255,0.045));
+    border: 1px solid rgba(54,233,255,0.28);
+    border-radius: 16px;
+    padding: 10px 13px;
+    margin: 8px 0 14px 0;
+    color: #dbfbff !important;
+    font-size: 13px;
+    font-weight: 700;
+}
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(14,15,27,0.98) 0%, rgba(8,8,15,0.98) 100%);
     border-right: 1px solid rgba(255,255,255,0.11);
@@ -1237,8 +1276,20 @@ def run_hidden_hourly_auto_backup():
 
 
 def render_backup_banner():
-    st.warning("⚠ Antes de borrar o hacer pruebas: descarga un backup Excel, guarda copia local y sube una copia a Google Drive.")
-    st.caption("Google Drive automático directo requiere Drive API. Por ahora el backup automático funciona con Google Drive Desktop; el botón abre tu carpeta privada de Drive.")
+    st.markdown("""
+    <div class="backup-warning-banner">
+        <div class="backup-warning-title">⚠ Respaldo recomendado antes de borrar o hacer pruebas</div>
+        <div class="backup-warning-text">
+            Descarga un backup Excel, guarda una copia local y sube otra copia a Google Drive antes de eliminar información.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="drive-note-banner">
+        Google Drive automático directo requiere Drive API. Por ahora el backup automático funciona con Google Drive Desktop; el botón abre tu carpeta privada de Drive.
+    </div>
+    """, unsafe_allow_html=True)
 
     backup_destination = st.text_input(
         "Carpeta para guardar backup local",
