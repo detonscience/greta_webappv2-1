@@ -1131,6 +1131,28 @@ def export_excel():
     return output.getvalue()
 
 
+def export_blank_excel_template():
+    output = BytesIO()
+
+    template_sheets = {
+        "Clientes": list(st.session_state.clientes.columns),
+        "Empleados": list(st.session_state.empleados.columns),
+        "Citas": list(st.session_state.citas.columns),
+        "Inventario": list(st.session_state.inventario.columns),
+        "Gastos": list(st.session_state.gastos.columns),
+        "Catalogo": list(st.session_state.catalogo.columns),
+        "Ventas": list(st.session_state.ventas.columns),
+        "Usuarios": list(st.session_state.usuarios.columns),
+        "Integraciones": list(pd.DataFrame([st.session_state.social_integrations]).columns),
+    }
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        for sheet_name, columns in template_sheets.items():
+            pd.DataFrame(columns=columns).to_excel(writer, index=False, sheet_name=sheet_name)
+
+    return output.getvalue()
+
+
 def save_backup_to_local_computer(destination_folder=None, prefix="valentina_studio_backup"):
     if destination_folder:
         backup_folder = Path(str(destination_folder)).expanduser()
