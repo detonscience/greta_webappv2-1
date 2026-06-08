@@ -1374,9 +1374,6 @@ def import_excel(file):
     ensure_cita_ids()
     return imported_sheets
 
-    ensure_cita_ids()
-    return imported_sheets
-
 
 def render_excel_emergency_import_export():
     st.markdown("### Excel de emergencia")
@@ -2541,4 +2538,4 @@ elif menu == "Integraciones":
             placeholder="G-XXXXXXXXXX"
         )
 
-        st.caption("Esto deja guardados los IDs. Después se puede conectar a una página pública real de booking para disparar eve<truncated__content/>
+        st.caption("Esto deja guardados los IDs. Después se puede conectar a una página pública real de booking para disparar eventos de tracking y medición.")
