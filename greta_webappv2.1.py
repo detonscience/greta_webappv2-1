@@ -1336,14 +1336,79 @@ def import_excel(file):
         "Usuarios": "usuarios",
     }
 
+    imported_sheets = []
+
     for sheet, key in sheet_map.items():
         if sheet in xls.sheet_names:
             st.session_state[key] = pd.read_excel(file, sheet_name=sheet)
+            imported_sheets.append(sheet)
 
     if "Integraciones" in xls.sheet_names:
         integraciones = pd.read_excel(file, sheet_name="Integraciones")
         if not integraciones.empty:
             st.session_state.social_integrations = integraciones.iloc[0].to_dict()
+            imported_sheets.append("Integraciones")
+
+    ensure_cita_ids()
+    return imported_sheets
+
+    ensure_cita_ids()
+    return imported_sheets
+
+
+def render_excel_emergency_import_export():
+    st.markdown("### Excel de emergencia")
+    st.info("Descarga una hoja en blanco con todos los headers correctos. En una emergencia puedes llenar ese Excel y volverlo a subir aquí.")
+
+    e1, e2 = st.columns(2)
+
+    with e1:
+        st.download_button(
+            "Descargar Excel en blanco con headers",
+            data=export_blank_excel_template(),
+            file_name="valentina_studio_template_en_blanco.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_blank_excel_template"
+        )
+
+    with e2:
+        st.download_button(
+            "Descargar backup completo actual",
+            data=export_excel(),
+            file_name=f"valentina_studio_backup_{date.today()}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_full_excel_from_emergency"
+        )
+
+    st.divider()
+    st.markdown("### Subir datos desde Excel")
+    st.warning("Esto puede reemplazar tablas actuales con las hojas que vengan en el Excel. Primero descarga un backup completo antes de importar.")
+
+    uploaded_excel = st.file_uploader(
+        "Subir Excel de backup o plantilla llena",
+        type=["xlsx"],
+        key="emergency_excel_upload"
+    )
+
+    confirm_import = st.checkbox(
+        "Confirmo que ya hice backup y quiero importar este Excel",
+        key="emergency_excel_import_confirm"
+    )
+
+    if st.button(
+        "Importar datos desde Excel",
+        disabled=uploaded_excel is None or not confirm_import,
+        key="emergency_excel_import_button"
+    ):
+        try:
+            imported_sheets = import_excel(uploaded_excel)
+            if imported_sheets:
+                st.success("Datos importados: " + ", ".join(imported_sheets))
+            else:
+                st.warning("No se importó nada. Revisa que el Excel tenga hojas con nombres como Clientes, Citas, Ventas, Inventario, Gastos, Catalogo, Empleados o Usuarios.")
+            st.rerun()
+        except Exception as exc:
+            st.error(f"No se pudo importar el Excel. Revisa el formato. Error: {exc}")
 
 
 st.markdown(
@@ -2454,630 +2519,4 @@ elif menu == "Integraciones":
             placeholder="G-XXXXXXXXXX"
         )
 
-        st.caption("Esto deja guardados los IDs. Después se puede conectar a una página pública real de booking para disparar eventos de conversión.")
-
-    st.divider()
-
-    if st.button("Guardar integraciones"):
-        st.session_state.social_integrations = {
-            "booking_link": booking_link,
-            "google_reserve_enabled": google_reserve_enabled,
-            "google_business_profile": google_business_profile,
-            "facebook_enabled": facebook_enabled,
-            "facebook_page": facebook_page,
-            "instagram_enabled": instagram_enabled,
-            "instagram_profile": instagram_profile,
-            "meta_pixel_enabled": meta_pixel_enabled,
-            "meta_pixel_id": meta_pixel_id,
-            "google_analytics_enabled": google_analytics_enabled,
-            "google_analytics_id": google_analytics_id,
-            "tiktok_profile": tiktok_profile,
-            "website_url": website_url
-        }
-        st.success("Integraciones guardadas correctamente.")
-
-    st.markdown("### Estado de integraciones")
-
-    resumen = pd.DataFrame([
-        {"Integración": "Booking link", "Estado": "Configurado" if booking_link else "Pendiente", "Detalle": booking_link},
-        {"Integración": "Google Reserve", "Estado": "Activo" if google_reserve_enabled else "Inactivo", "Detalle": google_business_profile},
-        {"Integración": "Facebook bookings", "Estado": "Activo" if facebook_enabled else "Inactivo", "Detalle": facebook_page},
-        {"Integración": "Instagram bookings", "Estado": "Activo" if instagram_enabled else "Inactivo", "Detalle": instagram_profile},
-        {"Integración": "Meta Pixel", "Estado": "Activo" if meta_pixel_enabled else "Inactivo", "Detalle": meta_pixel_id},
-        {"Integración": "Google Analytics", "Estado": "Activo" if google_analytics_enabled else "Inactivo", "Detalle": google_analytics_id},
-        {"Integración": "TikTok", "Estado": "Configurado" if tiktok_profile else "Pendiente", "Detalle": tiktok_profile},
-        {"Integración": "Website", "Estado": "Configurado" if website_url else "Pendiente", "Detalle": website_url},
-    ])
-
-    st.dataframe(resumen, use_container_width=True)
-
-
-elif menu == "Reportes":
-    render_fresha_hero(
-        "Reportes",
-        "Resumen de desempeño: ventas, citas, clientes, servicios y empleadas."
-    )
-
-    citas = st.session_state.citas.copy()
-    ventas = st.session_state.ventas.copy()
-
-    citas["Fecha_dt"] = pd.to_datetime(citas["Fecha"], errors="coerce")
-    citas["Precio"] = pd.to_numeric(citas["Precio"], errors="coerce").fillna(0)
-
-    ventas["Fecha_dt"] = pd.to_datetime(ventas["Fecha"], errors="coerce")
-    ventas["Total"] = pd.to_numeric(ventas["Total"], errors="coerce").fillna(0)
-
-    r1, r2 = responsive_columns(2, ipad_count=2, mobile_count=1)
-
-    with r1:
-        desde = st.date_input(
-            "Desde",
-            value=date.today().replace(day=1),
-            key="reportes_desde"
-        )
-
-    with r2:
-        hasta = st.date_input(
-            "Hasta",
-            value=date.today(),
-            key="reportes_hasta"
-        )
-
-    citas_periodo = citas[
-        (citas["Fecha_dt"].dt.date >= desde) &
-        (citas["Fecha_dt"].dt.date <= hasta)
-    ]
-
-    ventas_periodo = ventas[
-        (ventas["Fecha_dt"].dt.date >= desde) &
-        (ventas["Fecha_dt"].dt.date <= hasta)
-    ]
-
-    c1, c2, c3, c4 = responsive_columns(4, ipad_count=4, mobile_count=4)
-
-    with c1:
-        render_stat_card("Ventas", money(ventas_periodo["Total"].sum()), "Periodo seleccionado")
-    with c2:
-        render_stat_card("Citas", len(citas_periodo), "Periodo seleccionado")
-    with c3:
-        clientes_unicos = citas_periodo["Cliente"].nunique() if not citas_periodo.empty else 0
-        render_stat_card("Clientes únicos", clientes_unicos, "En citas")
-    with c4:
-        completadas = len(citas_periodo[citas_periodo["Estado"] == "Completada"])
-        render_stat_card("Completadas", completadas, "Citas cerradas")
-
-    tab1, tab2, tab3 = st.tabs(["Por empleada", "Por servicio", "Por estado"])
-
-    with tab1:
-        if citas_periodo.empty:
-            st.info("No hay citas en este periodo.")
-        else:
-            rep = citas_periodo.groupby("Empleado").agg(
-                Citas=("Cliente", "count"),
-                Ingresos_estimados=("Precio", "sum")
-            ).reset_index()
-
-            st.dataframe(rep, use_container_width=True)
-
-    with tab2:
-        if citas_periodo.empty:
-            st.info("No hay citas en este periodo.")
-        else:
-            rep = citas_periodo.groupby("Servicio").agg(
-                Citas=("Cliente", "count"),
-                Ingresos_estimados=("Precio", "sum")
-            ).reset_index()
-
-            st.dataframe(rep, use_container_width=True)
-
-    with tab3:
-        if citas_periodo.empty:
-            st.info("No hay citas en este periodo.")
-        else:
-            rep = citas_periodo.groupby("Estado").agg(
-                Citas=("Cliente", "count"),
-                Ingresos_estimados=("Precio", "sum")
-            ).reset_index()
-
-            st.dataframe(rep, use_container_width=True)
-
-
-elif menu == "WhatsApp":
-    render_fresha_hero(
-        "WhatsApp",
-        "Envía confirmaciones, recordatorios, mensajes de gracias y promociones."
-    )
-
-    ensure_cita_ids()
-    citas = st.session_state.citas.copy()
-
-    if citas.empty:
-        st.info("No hay citas.")
-    else:
-        opciones = citas.apply(
-            lambda r: f"{r.get('Cita ID', '')} · {r['Fecha']} {r['Hora']} - {r['Cliente']} ({r['Servicio']})",
-            axis=1
-        ).tolist()
-
-        seleccion = st.selectbox("Selecciona cita", opciones)
-
-        row = citas.iloc[opciones.index(seleccion)]
-
-        render_appointment_card(row)
-        st.caption(f"ID de cita: {row.get('Cita ID', '')}")
-        render_whatsapp_buttons(row)
-
-        st.divider()
-        if st.button("Borrar esta cita", key=f"delete_whatsapp_{row.get('Cita ID', row.name)}"):
-            delete_cita_by_id(row.get("Cita ID", ""))
-            st.success("Cita borrada correctamente.")
-            st.rerun()
-
-
-elif menu == "Empleados":
-    require_admin()
-
-    render_fresha_hero(
-        "Empleados",
-        "Administra técnicas, puestos, sueldos, comisiones y estado activo."
-    )
-
-    editado = st.data_editor(
-        st.session_state.empleados,
-        use_container_width=True,
-        num_rows="dynamic"
-    )
-
-    if st.button("Guardar empleados"):
-        st.session_state.empleados = editado
-        st.success("Empleados actualizados.")
-
-    st.divider()
-    render_delete_rows_tool("Empleados", "empleados", label_column="Nombre", key_prefix="empleados")
-
-
-elif menu == "Nómina":
-    require_admin()
-
-    render_fresha_hero(
-        "Nómina",
-        "Calcula sueldo base, comisiones y pago estimado por empleada."
-    )
-
-    citas = st.session_state.citas.copy()
-    empleados = st.session_state.empleados.copy()
-
-    citas["Precio"] = pd.to_numeric(citas["Precio"], errors="coerce").fillna(0)
-
-    desde = st.date_input(
-        "Desde",
-        value=date.today().replace(day=1),
-        key="nomina_desde"
-    )
-
-    hasta = st.date_input(
-        "Hasta",
-        value=date.today(),
-        key="nomina_hasta"
-    )
-
-    citas["Fecha_dt"] = pd.to_datetime(citas["Fecha"], errors="coerce")
-
-    citas_p = citas[
-        (citas["Fecha_dt"].dt.date >= desde) &
-        (citas["Fecha_dt"].dt.date <= hasta)
-    ]
-
-    rows = []
-
-    for _, emp in empleados.iterrows():
-        ventas_emp = citas_p[citas_p["Empleado"] == emp["Nombre"]]["Precio"].sum()
-        comision = ventas_emp * (float(emp.get("Comision %", 0)) / 100)
-        sueldo = float(emp.get("Sueldo base", 0))
-
-        rows.append({
-            "Empleado": emp["Nombre"],
-            "Sueldo base": sueldo,
-            "Ventas": ventas_emp,
-            "Comisión": comision,
-            "Pago estimado": sueldo + comision
-        })
-
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-
-elif menu == "Inventario":
-    require_admin()
-
-    render_fresha_hero(
-        "Inventario",
-        "Control de materiales, costos y alertas de bajo inventario."
-    )
-
-    inv = st.session_state.inventario.copy()
-
-    inv["Cantidad"] = pd.to_numeric(inv["Cantidad"], errors="coerce").fillna(0)
-    inv["Minimo"] = pd.to_numeric(inv["Minimo"], errors="coerce").fillna(0)
-
-    bajos = inv[inv["Cantidad"] <= inv["Minimo"]]
-
-    if not bajos.empty:
-        st.warning("Hay productos bajos en inventario.")
-        st.dataframe(bajos, use_container_width=True)
-
-    editado = st.data_editor(
-        st.session_state.inventario,
-        use_container_width=True,
-        num_rows="dynamic"
-    )
-
-    if st.button("Guardar inventario"):
-        st.session_state.inventario = editado
-        st.success("Inventario actualizado.")
-
-    st.divider()
-    render_delete_rows_tool("Inventario", "inventario", label_column="Producto", key_prefix="inventario")
-
-
-elif menu == "Finanzas":
-    require_admin()
-
-    render_fresha_hero(
-        "Finanzas",
-        "Ingresos, gastos, costos de materiales y ganancia estimada."
-    )
-
-    ventas = st.session_state.ventas.copy()
-    gastos = st.session_state.gastos.copy()
-    citas = st.session_state.citas.copy()
-
-    ventas["Total"] = pd.to_numeric(ventas["Total"], errors="coerce").fillna(0)
-    gastos["Monto"] = pd.to_numeric(gastos["Monto"], errors="coerce").fillna(0)
-    citas["Costo materiales"] = pd.to_numeric(
-        citas["Costo materiales"],
-        errors="coerce"
-    ).fillna(0)
-
-    ingresos = ventas["Total"].sum()
-    gastos_total = gastos["Monto"].sum()
-    materiales = citas["Costo materiales"].sum()
-    ganancia = ingresos - gastos_total - materiales
-
-    c1, c2, c3, c4 = responsive_columns(4, ipad_count=4, mobile_count=4)
-
-    with c1:
-        render_stat_card("Ingresos", money(ingresos), "Ventas")
-    with c2:
-        render_stat_card("Gastos", money(gastos_total), "Gastos registrados")
-    with c3:
-        render_stat_card("Materiales", money(materiales), "Costo en citas")
-    with c4:
-        render_stat_card("Ganancia", money(ganancia), "Estimada")
-
-    st.subheader("Gastos")
-
-    editado = st.data_editor(
-        st.session_state.gastos,
-        use_container_width=True,
-        num_rows="dynamic"
-    )
-
-    if st.button("Guardar gastos"):
-        st.session_state.gastos = editado
-        st.success("Gastos actualizados.")
-
-
-elif menu == "Settings":
-    require_admin()
-
-    render_fresha_hero(
-        "Settings",
-        "Configuración del negocio, usuarios, roles y online booking."
-    )
-
-    tab1, tab2, tab3 = st.tabs(["Negocio", "Usuarios y roles", "Permisos"])
-
-    with tab1:
-        settings = st.session_state.app_settings
-
-        nombre_negocio = st.text_input(
-            "Nombre del negocio",
-            value=settings.get("nombre_negocio", "Valentina Studio")
-        )
-
-        telefono_negocio = st.text_input(
-            "Teléfono del negocio",
-            value=settings.get("telefono_negocio", "")
-        )
-
-        direccion_negocio = st.text_area(
-            "Dirección",
-            value=settings.get("direccion_negocio", "")
-        )
-
-        moneda = st.selectbox(
-            "Moneda",
-            ["USD", "MXN"],
-            index=0 if settings.get("moneda", "USD") == "USD" else 1
-        )
-
-        online_booking_activo = st.checkbox(
-            "Online booking activo",
-            value=settings.get("online_booking_activo", True)
-        )
-
-        requiere_confirmacion_online = st.checkbox(
-            "Solicitudes online requieren confirmación",
-            value=settings.get("requiere_confirmacion_online", True)
-        )
-
-        if st.button("Guardar settings del negocio"):
-            st.session_state.app_settings = {
-                "nombre_negocio": nombre_negocio,
-                "telefono_negocio": telefono_negocio,
-                "direccion_negocio": direccion_negocio,
-                "moneda": moneda,
-                "online_booking_activo": online_booking_activo,
-                "requiere_confirmacion_online": requiere_confirmacion_online
-            }
-
-            st.success("Settings guardados.")
-
-    with tab2:
-        usuarios_editados = st.data_editor(
-            st.session_state.usuarios,
-            use_container_width=True,
-            num_rows="dynamic"
-        )
-
-        if st.button("Guardar usuarios y roles"):
-            st.session_state.usuarios = usuarios_editados
-            st.success("Usuarios actualizados.")
-
-        st.caption("Por ahora esto simula roles. Después podemos agregar login real con contraseña.")
-
-    with tab3:
-        permisos_rows = [
-            {
-                "Rol": rol,
-                "Secciones permitidas": ", ".join(menus)
-            }
-            for rol, menus in ROLE_MENUS.items()
-        ]
-
-        st.dataframe(pd.DataFrame(permisos_rows), use_container_width=True)
-
-elif menu == "Ayuda / Guía":
-    render_fresha_hero(
-        "Ayuda / Guía",
-        "Una guía rápida, divertida y sin estrés para dominar Valentina Studio como toda una pro."
-    )
-
-    st.markdown("""
-    <div class="quick-action-box">
-    <b>Bienvenida a bordo 🚀</b><br>
-    Esta app es tu centro de comando del salón. Aquí puedes manejar citas, clientes, ventas, reportes, WhatsApp,
-    inventario, nómina y reservas online sin tener que brincar entre mil libretas, mensajes y hojas de Excel.
-    </div>
-    """, unsafe_allow_html=True)
-
-    guia_tabs = st.tabs([
-        "Inicio",
-        "Agenda",
-        "Clientes",
-        "Ventas",
-        "Catálogo",
-        "Online booking",
-        "Reportes",
-        "Admin"
-    ])
-
-    with guia_tabs[0]:
-        st.subheader("Inicio: el tablero de control")
-        st.markdown("""
-        **Aquí ves el pulso del salón en segundos.**
-
-        - **Ventas:** cuánto se ha registrado.
-        - **Citas de hoy:** lo que viene en el día.
-        - **Clientes:** cuánta gente tienes en tu base.
-        - **Ganancia estimada:** ventas menos gastos y materiales.
-
-        **Tip de pro:** abre esta pantalla al iniciar el día. Es como prender las luces del salón, pero en versión digital ✨.
-        """)
-
-    with guia_tabs[1]:
-        st.subheader("Agenda Fresha y Calendario")
-        st.markdown("""
-        **Agenda Fresha** es para trabajar el día a día. Aquí filtras por fecha, profesional y estado de la cita.
-
-        Usa esta sección para:
-        - revisar las citas del día;
-        - abrir detalles del cliente;
-        - ver diseño, materiales, precio y notas;
-        - mandar mensajes por WhatsApp;
-        - revisar la carga de cada profesional.
-
-        **Calendario** es para ver el panorama completo:
-        - **Día:** perfecto para recepción.
-        - **Semana:** ideal para planear horarios.
-        - **Mes:** útil para ver qué tan lleno viene el calendario.
-        - **Año:** para revisar movimiento general.
-
-        **Tip divertido:** si el día se ve lleno, respira. La app no hace uñas, pero sí te ayuda a que no se te escape nada 😄.
-        """)
-
-    with guia_tabs[2]:
-        st.subheader("Lista de clientes")
-        st.markdown("""
-        Aquí vive la memoria del salón.
-
-        Puedes guardar:
-        - nombre;
-        - teléfono;
-        - email;
-        - cumpleaños;
-        - notas y preferencias.
-
-        **Ejemplos de notas útiles:**
-        - “Prefiere tonos nude.”
-        - “No le gusta esperar.”
-        - “Quiere recordatorio por WhatsApp.”
-        - “Cliente de cumpleaños en mayo.”
-
-        **Tip de reina:** una buena nota puede convertir una cita normal en una experiencia personalizada 👑.
-        """)
-
-    with guia_tabs[3]:
-        st.subheader("Ventas")
-        st.markdown("""
-        Esta sección es para registrar pagos y mantener control del dinero.
-
-        Usa **Nueva venta** cuando una clienta pague. Selecciona:
-        - cliente;
-        - servicio;
-        - empleada;
-        - método de pago;
-        - descuento si aplica;
-        - total.
-
-        En **Historial de ventas** puedes revisar lo que se ha cobrado.
-
-        **Tip de caja:** registra la venta justo cuando termina la cita. Si dices “lo hago al rato”, el monstruo del caos aparece 🧟‍♀️.
-        """)
-
-    with guia_tabs[4]:
-        st.subheader("Catálogo")
-        st.markdown("""
-        El catálogo es tu menú de servicios.
-
-        Aquí configuras:
-        - nombre del servicio;
-        - categoría;
-        - duración;
-        - precio;
-        - si está activo;
-        - descripción.
-
-        Esto ayuda a que **Nueva cita**, **Ventas** y **Online booking** usen precios más consistentes.
-
-        **Tip premium:** si el servicio no está en el catálogo, el salón se vuelve improvisación jazz. A veces cool, pero no para cobrar 😅.
-        """)
-
-    with guia_tabs[5]:
-        st.subheader("Online booking e Integraciones")
-        st.markdown("""
-        **Online booking** simula una página donde el cliente puede solicitar cita.
-        Cuando alguien llena el formulario, la cita entra como **Pendiente**.
-
-        **Integraciones** es donde guardas los links y configuraciones para conectar el booking con:
-        - Instagram;
-        - Facebook;
-        - Google Business Profile;
-        - TikTok;
-        - Website;
-        - Meta Pixel;
-        - Google Analytics.
-
-        **Tip social:** el booking link debe estar en todos lados. Si una clienta se emociona a las 11:48 PM viendo tus diseños, que pueda reservar ahí mismo 🌙.
-        """)
-
-    with guia_tabs[6]:
-        st.subheader("Reportes")
-        st.markdown("""
-        Reportes te ayuda a ver qué está pasando con el negocio.
-
-        Puedes revisar por fechas:
-        - ventas;
-        - citas;
-        - clientes únicos;
-        - citas completadas;
-        - desempeño por empleada;
-        - desempeño por servicio;
-        - citas por estado.
-
-        **Tip de jefa:** no adivines cómo va el negocio. Mira los reportes y deja que los números hablen 📊.
-        """)
-
-    with guia_tabs[7]:
-        st.subheader("Admin: empleados, nómina, inventario, finanzas y settings")
-        st.markdown("""
-        Estas secciones son para Admin.
-
-        **Empleados:** agrega, edita o desactiva profesionales.
-
-        **Nómina:** calcula sueldo base, ventas, comisión y pago estimado.
-
-        **Inventario:** controla productos y recibe alertas cuando algo está bajo.
-
-        **Finanzas:** revisa ingresos, gastos, materiales y ganancia estimada.
-
-        **Settings:** configura nombre del negocio, moneda, online booking y usuarios/roles.
-
-        **Excel / Backup:** descarga o importa respaldo de datos.
-
-        **Tip anti-susto:** antes de hacer cambios grandes, descarga un backup. Es como guardar partida antes del jefe final 🎮.
-        """)
-
-    st.divider()
-    st.markdown("### Guía express por rol")
-
-    rol_col1, rol_col2, rol_col3 = responsive_columns(3, ipad_count=3, mobile_count=1)
-
-    with rol_col1:
-        st.markdown("""
-        <div class="fresha-stat-card">
-            <div class="fresha-stat-label">Admin</div>
-            <div class="small-muted">
-            Control total: ventas, reportes, empleados, nómina, inventario, finanzas, settings y backups.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with rol_col2:
-        st.markdown("""
-        <div class="fresha-stat-card">
-            <div class="fresha-stat-label">Recepción</div>
-            <div class="small-muted">
-            Maneja citas, clientes, ventas, WhatsApp, catálogo, online booking e integraciones básicas.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with rol_col3:
-        st.markdown("""
-        <div class="fresha-stat-card">
-            <div class="fresha-stat-label">Empleada</div>
-            <div class="small-muted">
-            Revisa agenda, calendario, clientes y mensajes de WhatsApp relacionados al trabajo diario.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="quick-action-box">
-    <b>Regla de oro:</b> si algo importante cambia en el salón, también debe cambiar en la app.
-    Si está en tu cabeza pero no en Valentina Studio, todavía no existe oficialmente 😉.
-    </div>
-    """, unsafe_allow_html=True)
-
-elif menu == "Excel / Backup":
-    require_admin()
-
-    render_fresha_hero(
-        "Excel / Backup",
-        "Exporta o importa la información de la app."
-    )
-
-    st.download_button(
-        "Descargar backup Excel",
-        data=export_excel(),
-        file_name="greta_studio_backup.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    uploaded = st.file_uploader("Importar backup Excel", type=["xlsx"])
-
-    if uploaded is not None:
-        if st.button("Importar archivo"):
-            import_excel(uploaded)
-            st.success("Datos importados correctamente.")
+        st.caption("Esto deja guardados los IDs. Después se puede conectar a una página pública real de booking para disparar eve<truncated__content/>
