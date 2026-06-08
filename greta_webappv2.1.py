@@ -1127,14 +1127,19 @@ def export_excel():
     return output.getvalue()
 
 
-def save_backup_to_local_computer():
-    LOCAL_BACKUP_FOLDER.mkdir(parents=True, exist_ok=True)
+def save_backup_to_local_computer(destination_folder=None):
+    if destination_folder:
+        backup_folder = Path(str(destination_folder)).expanduser()
+    else:
+        backup_folder = LOCAL_BACKUP_FOLDER
+
+    backup_folder.mkdir(parents=True, exist_ok=True)
     timestamp = date.today().strftime("%Y-%m-%d")
-    backup_path = LOCAL_BACKUP_FOLDER / f"valentina_studio_backup_{timestamp}.xlsx"
+    backup_path = backup_folder / f"valentina_studio_backup_{timestamp}.xlsx"
 
     counter = 2
     while backup_path.exists():
-        backup_path = LOCAL_BACKUP_FOLDER / f"valentina_studio_backup_{timestamp}_{counter}.xlsx"
+        backup_path = backup_folder / f"valentina_studio_backup_{timestamp}_{counter}.xlsx"
         counter += 1
 
     backup_path.write_bytes(export_excel())
@@ -1143,13 +1148,24 @@ def save_backup_to_local_computer():
 
 def render_backup_banner():
     st.warning("⚠ Antes de borrar o hacer pruebas: descarga un backup Excel, guarda copia local y sube una copia a Google Drive.")
+    st.caption("Google Drive automático requiere autenticación/API. Por ahora puedes abrir la carpeta de Drive y subir manualmente el Excel descargado.")
+
+    backup_destination = st.text_input(
+        "Carpeta para guardar backup local",
+        value=str(LOCAL_BACKUP_FOLDER),
+        help="Puedes pegar una ruta como ~/Desktop, ~/Documents/Backups o una carpeta sincronizada con Google Drive.",
+        key="global_backup_destination_folder"
+    )
 
     b1, b2, b3 = st.columns(3)
 
     with b1:
-        if st.button("Guardar backup local", key="global_save_local_backup"):
-            path = save_backup_to_local_computer()
-            st.success(f"Backup guardado en: {path}")
+        if st.button("Guardar backup en esta carpeta", key="global_save_local_backup"):
+            try:
+                path = save_backup_to_local_computer(backup_destination)
+                st.success(f"Backup guardado en: {path}")
+            except Exception as exc:
+                st.error(f"No se pudo guardar el backup. Revisa la ruta de carpeta. Error: {exc}")
 
     with b2:
         st.download_button(
