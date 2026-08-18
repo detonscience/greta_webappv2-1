@@ -1159,6 +1159,67 @@ MENU_ICONS = {
 }
 
 
+
+def render_inline_delete_cita(row, key_prefix="inline_delete"):
+    """Borra una cita exacta por Cita ID con confirmación."""
+
+    cita_id = str(row.get("Cita ID", "")).strip()
+
+    if not cita_id:
+        st.caption("⚠️ Esta cita no tiene Cita ID.")
+        return
+
+    safe_id = "".join(
+        ch if ch.isalnum() else "_"
+        for ch in cita_id
+    )
+
+    confirm_key = f"{key_prefix}_confirm_{safe_id}"
+
+    if not st.session_state.get(confirm_key, False):
+
+        if st.button(
+            "🗑️ Eliminar cita",
+            key=f"{key_prefix}_button_{safe_id}",
+            use_container_width=True,
+        ):
+            st.session_state[confirm_key] = True
+            st.rerun()
+
+    else:
+
+        cliente = row.get("Cliente", "")
+        fecha = row.get("Fecha", "")
+        hora = row.get("Hora", "")
+
+        st.warning(
+            f"⚠️ ¿Seguro que deseas eliminar la cita de "
+            f"{cliente} · {fecha} · {hora}?"
+        )
+
+        col_yes, col_no = st.columns(2)
+
+        with col_yes:
+            if st.button(
+                "🗑️ Sí, eliminar",
+                key=f"{key_prefix}_yes_{safe_id}",
+                type="primary",
+                use_container_width=True,
+            ):
+                delete_cita_by_id(cita_id)
+                st.session_state.pop(confirm_key, None)
+                st.rerun()
+
+        with col_no:
+            if st.button(
+                "Cancelar",
+                key=f"{key_prefix}_no_{safe_id}",
+                use_container_width=True,
+            ):
+                st.session_state.pop(confirm_key, None)
+                st.rerun()
+
+
 def menu_label(name):
     return f"{MENU_ICONS.get(name, '•')}   {name}"
 
@@ -1812,6 +1873,7 @@ if menu == "Inicio":
         else:
             for _, row in citas_hoy.sort_values("Hora").iterrows():
                 render_appointment_card(row)
+                render_inline_delete_cita(row, "inicio")
                 render_whatsapp_buttons(row)
 
     with right:
@@ -1949,6 +2011,7 @@ elif menu == "Agenda Fresha":
         else:
             for _, row in citas_dia.sort_values("Hora").iterrows():
                 render_appointment_card(row)
+                render_inline_delete_cita(row, "agenda")
                 with st.expander(f"Opciones: {row['Cliente']} · {row['Hora']} · {row.get('Cita ID', '')}"):
                     cliente_info = get_client_info(row["Cliente"])
 
